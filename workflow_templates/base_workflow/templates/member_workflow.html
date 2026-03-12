@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+  .wf-page {
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Breadcrumb */
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  .breadcrumb a {
+    color: var(--text2);
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--blue);
+  }
+
+  .breadcrumb-sep {
+    color: var(--border2);
+  }
+
+  /* Workflow hero */
+  .wf-hero {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .wf-hero-name {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+
+  .wf-hero-id {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-top: 4px;
+  }
+
+  .wf-hero-desc {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin-top: 8px;
+    max-width: 560px;
+  }
+
+  /* Job grid */
+  .batch-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .batch-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    display: block;
+    color: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .batch-card:hover {
+    border-color: var(--blue-bd, #1a3566);
+    box-shadow: 0 4px 20px rgba(79, 142, 247, 0.07);
+  }
+
+  .batch-accent {
+    height: 3px;
+  }
+
+  .batch-accent.p1 {
+    background: linear-gradient(90deg, #ef4444, #f97316);
+  }
+
+  .batch-accent.p2 {
+    background: linear-gradient(90deg, #f59e0b, #eab308);
+  }
+
+  .batch-accent.p3 {
+    background: linear-gradient(90deg, var(--blue), #60a5fa);
+  }
+
+  .batch-accent.pn {
+    background: var(--border);
+  }
+
+  .batch-body {
+    padding: 18px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .batch-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .batch-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .batch-wf {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-top: 2px;
+  }
+
+  .batch-desc {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.55;
+    margin-top: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .batch-spl {
+    margin-top: 10px;
+    background: rgba(245, 158, 11, 0.07);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 7px;
+    padding: 7px 10px;
+    font-size: 11px;
+    color: #f59e0b;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    line-height: 1.5;
+  }
+
+  .batch-right {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+  }
+
+  .priority-badge {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 99px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-family: var(--mono);
+    border: 1px solid;
+  }
+
+  .priority-badge.p1 {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.25);
+  }
+
+  .priority-badge.p2 {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.25);
+  }
+
+  .priority-badge.p3 {
+    color: var(--blue);
+    background: var(--blue-bg);
+    border-color: var(--blue-bd, #1a3566);
+  }
+
+  .priority-badge.pn {
+    color: var(--muted);
+    background: var(--surface2);
+    border-color: var(--border);
+  }
+
+  .batch-stats {
+    display: flex;
+    gap: 16px;
+  }
+
+  .bs {
+    text-align: center;
+  }
+
+  .bs-val {
+    font-family: var(--mono);
+    font-size: 17px;
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .bs-lbl {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 2px;
+  }
+
+  .batch-footer {
+    padding: 10px 20px;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .batch-supervisor {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  .sv-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--blue-bg);
+    border: 1px solid var(--blue-bd, #1a3566);
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: 800;
+  }
+
+  .open-cta {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .section-hdr {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-hdr::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 13px;
+    background: var(--blue);
+    border-radius: 2px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wf-page">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="{{ url_for('member_home') }}">WorkBench</a>
+    <span class="breadcrumb-sep">›</span>
+    <span>{{ workflow.name }}</span>
+  </div>
+
+  <!-- Workflow hero -->
+  <div class="wf-hero">
+    <div>
+      <div class="wf-hero-name">{{ workflow.name }}</div>
+      <div class="wf-hero-id">{{ workflow.workflow_id }}</div>
+      {% if workflow.description %}
+      <div class="wf-hero-desc">{{ workflow.description }}</div>
+      {% endif %}
+    </div>
+    {% set pclass = 'p' ~ workflow.priority if workflow.priority in [1,2,3] else 'pn' %}
+    {% set plabel = 'P' ~ workflow.priority %}
+    <div class="priority-badge {{ pclass }}">{{ plabel }}</div>
+  </div>
+
+  <!-- Batches -->
+  <div>
+    <div class="section-hdr" style="margin-bottom:14px;">
+      Batches assigned to you
+      <span style="font-size:11px;font-weight:600;color:var(--text2);font-family:var(--mono);">{{ batches|length
+        }}</span>
+    </div>
+
+    <div class="batch-grid">
+      {% for b in batches %}
+      {% set pclass = 'p' ~ b.priority if b.priority in [1,2,3] else 'pn' %}
+      {% set plabel = 'P' ~ b.priority ~ ' · Critical' if b.priority == 1 else ('P' ~ b.priority ~ ' · High' if
+      b.priority == 2 else 'P' ~ (b.priority or '—')) %}
+
+      <a href="{{ url_for('member_dashboard', batch_id=b.batch_id, workflow_id=workflow.workflow_id) }}" class="batch-card">
+        <div class="batch-accent {{ pclass }}"></div>
+        <div class="batch-body">
+          <div class="batch-main">
+            <div class="batch-name">{{ b.name }}</div>
+            <div class="batch-wf">Batch ID: {{ b.batch_id }}</div>
+            {% if b.description %}
+            <div class="batch-desc">{{ b.description }}</div>
+            {% endif %}
+            {% if b.special_instructions %}
+            <div class="batch-spl">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                style="flex-shrink:0;margin-top:1px">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              {{ b.special_instructions }}
+            </div>
+            {% endif %}
+          </div>
+          <div class="batch-right">
+            <div class="priority-badge {{ pclass }}">{{ plabel }}</div>
+            <div class="batch-stats">
+              <div class="bs">
+                <div class="bs-val">{{ b.total_jobs }}</div>
+                <div class="bs-lbl">Batches</div>
+              </div>
+              <div class="bs">
+                <div class="bs-val" style="color:var(--blue)">{{ b.total_jobs }}</div>
+                <div class="bs-lbl">Pending</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="batch-footer">
+          <div class="batch-supervisor">
+            {% if b.supervisor_name %}
+            <div class="sv-avatar">{{ b.supervisor_name[0] }}</div>
+            <span>{{ b.supervisor_name }}</span>
+            {% endif %}
+          </div>
+          <div class="open-cta">
+            View Batches
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

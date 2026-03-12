@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+  /* ── Page shell ── */
+  .wb-page {
+    padding: 28px 28px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-height: 100%;
+  }
+
+  /* ── Welcome bar ── */
+  .wb-welcome {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .wb-greet-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .wb-greet-name {
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .wb-greet-name span {
+    color: var(--blue);
+  }
+
+  .wb-summary-pill {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 12px;
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .wb-summary-pill .mono {
+    font-family: var(--mono);
+    font-weight: 800;
+    color: var(--blue);
+  }
+
+  /* ── Section header ── */
+  .wb-section-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .wb-section-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .wb-section-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 13px;
+    background: var(--blue);
+    border-radius: 2px;
+  }
+
+  .wb-sort {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .wb-sort select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text2);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    padding-right: 24px;
+    cursor: pointer;
+    font-family: var(--font);
+    appearance: none;
+    outline: none;
+  }
+
+  .wb-sort-wrap {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .wb-sort-wrap::after {
+    content: '';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+    border-top: 4px solid var(--muted);
+    pointer-events: none;
+  }
+
+  /* ── Workflow cards grid ── */
+  .wf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+  }
+
+  /* ── Workflow card ── */
+  .wf-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    color: inherit;
+    box-shadow: 0 8px 22px rgba(10, 20, 40, 0.04);
+  }
+
+  .wf-card:hover {
+    border-color: var(--blue-bd, #1a3566);
+    box-shadow: 0 12px 28px rgba(79, 142, 247, 0.12);
+    transform: translateY(-2px);
+  }
+
+  .wf-card-body {
+    padding: 18px 18px 14px;
+  }
+
+  /* Card top row */
+  .wf-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .wf-name {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+  }
+
+  /* Priority badge */
+  .priority-badge {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 99px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-family: var(--mono);
+    border: 1px solid;
+  }
+
+  .priority-badge.p1 {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.25);
+  }
+
+  .priority-badge.p2 {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.25);
+  }
+
+  .priority-badge.p3 {
+    color: var(--blue);
+    background: var(--blue-bg);
+    border-color: var(--blue-bd, #1a3566);
+  }
+
+  .priority-badge.pn {
+    color: var(--muted);
+    background: var(--surface2);
+    border-color: var(--border);
+  }
+
+  .wf-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  .wf-chip {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--text2);
+    background: var(--surface2);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .wf-chip .val {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--blue);
+  }
+
+  /* Footer */
+  .wf-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 11px 20px;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+  }
+
+  /* Open arrow */
+  .wf-open-cta {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ── Empty state ── */
+  .wb-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 260px;
+    gap: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .wb-empty-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    border: 1px dashed var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.5;
+  }
+
+  .wb-empty-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text2);
+  }
+
+  .wb-empty-sub {
+    font-size: 12px;
+    max-width: 260px;
+    line-height: 1.5;
+  }
+
+  /* ── Logout link ── */
+  .wb-logout {
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    transition: all 0.15s;
+  }
+
+  .wb-logout:hover {
+    color: var(--text);
+    border-color: var(--border2);
+  }
+
+  @media(max-width: 700px) {
+    .wb-page {
+      padding: 16px;
+    }
+
+    .wf-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .wb-summary-pill {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wb-page">
+
+  <!-- ── Welcome + top controls ── -->
+  <div class="wb-welcome">
+    <div>
+      <div class="wb-greet-sub">worXbench — member dashboard</div>
+      <div class="wb-greet-name">Welcome, <span>{{ member.name.split()[0] }}</span></div>
+    </div>
+    <div class="wb-summary-pill">
+      <span class="mono">{{ workflows|length }}</span> workflows assigned
+      <span style="opacity:.5;">•</span>
+      <span class="mono">{{ total_pending }}</span> pending jobs
+    </div>
+  </div>
+
+  <!-- ── Workflows section ── -->
+  <div>
+    <div class="wb-section-hdr">
+      <div class="wb-section-title">Your Workflows</div>
+      <div class="wb-sort">
+        <span>Sort by</span>
+        <div class="wb-sort-wrap">
+          <select onchange="sortCards(this.value)">
+            <option value="priority">Priority</option>
+            <option value="pending">Pending jobs</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    {% if workflows %}
+    <div class="wf-grid" id="wf-grid">
+      {% for wf in workflows %}
+      {% set pclass = 'p' ~ wf.priority if wf.priority in [1,2,3] else 'pn' %}
+      {% set plabel = 'P' ~ wf.priority ~ ' · Critical' if wf.priority == 1 else ('P' ~ wf.priority ~ ' · High' if
+      wf.priority == 2 else ('P' ~ wf.priority if wf.priority else '—')) %}
+
+      <a href="{{ url_for('open_workflow', workflow_id=wf.workflow_id) }}" class="wf-card"
+        data-priority="{{ wf.priority or 99 }}" data-pending="{{ wf.pending_batches }}">
+
+        <div class="wf-card-body">
+          <div class="wf-card-top">
+            <div>
+              <div class="wf-name">{{ wf.name }}</div>
+              <div style="font-size:11px;color:#888;margin-top:2px">{{ wf.workflow_id }}</div>
+            </div>
+            <span style="font-size:11px;padding:3px 8px;border-radius:99px;background:{{ '#e6f9f0' if wf.url else '#fff3e0' }};color:{{ '#1a8a4a' if wf.url else '#b45309' }}">
+              {{ '&#10003; Deployed' if wf.url else '&#9888; Not deployed' }}
+            </span>
+          </div>
+          <div class="wf-card-meta">
+            <div class="wf-chip">Pending <span class="val">{{ wf.pending_batches }}</span></div>
+            <div class="wf-chip">Done <span class="val">{{ wf.completed_batches }}</span></div>
+          </div>
+        </div>
+
+        <div class="wf-card-footer">
+          <div class="wf-open-cta">
+            {{ 'Open' if wf.url else 'Deploy first' }}
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="wb-empty">
+      <div class="wb-empty-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+        </svg>
+      </div>
+      <div class="wb-empty-title">No workflows assigned</div>
+      <div class="wb-empty-sub">Ask your supervisor to assign you to a workflow to get started.</div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+  function sortCards(by) {
+    const grid = document.getElementById('wf-grid');
+    if (!grid) return;
+    const cards = Array.from(grid.querySelectorAll('.wf-card'));
+    cards.sort((a, b) => {
+      if (by === 'priority') return (parseInt(a.dataset.priority) || 99) - (parseInt(b.dataset.priority) || 99);
+      if (by === 'pending') return parseInt(b.dataset.pending) - parseInt(a.dataset.pending);
+      return 0;
+    });
+    cards.forEach(c => grid.appendChild(c));
+  }
+</script>
+{% endblock %}

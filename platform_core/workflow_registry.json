@@ -1,0 +1,15 @@
+{
+  "workflows": [
+    {
+      "workflow_id": "wf_lease_abstraction",
+      "name": "Lease Abstraction",
+      "scope": "Extract and validate key clauses from commercial lease documents including rent, term, renewal options, and tenant obligations.",
+      "port": 5001,
+      "status": "not deployed",
+      "pid": null,
+      "url": null,
+      "created_at": "2026-03-01T00:00:00Z",
+      "created_by": "naveena"
+    }
+  ]
+}

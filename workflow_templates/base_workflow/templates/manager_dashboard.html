@@ -1,0 +1,3623 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XAPP Dashboard — Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+  <style>
+    /* ═══ CSS Variables ════════════════════════════════════════════ */
+    :root {
+      --bg: #0f1117;
+      --sidebar: #13161f;
+      --surface: #181d2a;
+      --surface2: #1e2436;
+      --card: #1c2130;
+      --card-hover: #212638;
+      --border: #252e42;
+      --border2: #2d3850;
+      --text: #e8edf5;
+      --text2: #8a97b0;
+      --muted: #4d5a73;
+      --shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 4px 12px rgba(0, 0, 0, .3);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, .5);
+      --blue: #4f8ef7;
+      --blue-bg: #0f1e3d;
+      --blue-bd: #1a3566;
+      --green: #34d399;
+      --green-bg: #062016;
+      --green-bd: #064e2e;
+      --amber: #fbbf24;
+      --amber-bg: #1c1400;
+      --amber-bd: #78470a;
+      --red: #f87171;
+      --red-bg: #1c0808;
+      --red-bd: #7f1d1d;
+      --purple: #a78bfa;
+      --purple-bg: #160d2e;
+      --purple-bd: #4c1d95;
+      --teal: #38bdf8;
+      --teal-bg: #061828;
+      --teal-bd: #075985;
+      --accent: #4f8ef7;
+      --mono: 'Geist Mono', monospace;
+      --font: 'Geist', system-ui, sans-serif;
+      --r: 10px;
+      --rl: 12px;
+      --sidebar-w: 220px;
+      --topbar-h: 52px;
+    }
+
+    [data-theme="light"] {
+      --bg: #f0f4fa;
+      --sidebar: #ffffff;
+      --surface: #ffffff;
+      --surface2: #f5f7fc;
+      --card: #ffffff;
+      --card-hover: #f8faff;
+      --border: #e2e8f4;
+      --border2: #cbd5e8;
+      --text: #0f172a;
+      --text2: #475569;
+      --muted: #94a3b8;
+      --shadow: 0 1px 3px rgba(0, 0, 0, .06), 0 4px 12px rgba(0, 0, 0, .04);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, .1);
+      --blue: #2563eb;
+      --blue-bg: #eff6ff;
+      --blue-bd: #bfdbfe;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --green-bd: #bbf7d0;
+      --amber: #d97706;
+      --amber-bg: #fffbeb;
+      --amber-bd: #fde68a;
+      --red: #dc2626;
+      --red-bg: #fef2f2;
+      --red-bd: #fecaca;
+      --purple: #7c3aed;
+      --purple-bg: #f5f3ff;
+      --purple-bd: #ddd6fe;
+      --teal: #0891b2;
+      --teal-bg: #ecfeff;
+      --teal-bd: #a5f3fc;
+    }
+
+    /* ═══ Reset ═════════════════════════════════════════════════════ */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      font-size: 13px
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 99px
+    }
+
+    /* ═══ Animations ════════════════════════════════════════════════ */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .35
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% 0
+      }
+
+      100% {
+        background-position: 200% 0
+      }
+    }
+
+    .fade-up {
+      animation: fadeUp .3s ease both
+    }
+
+    .slide-down {
+      animation: slideDown .22s ease both
+    }
+
+    /* ═══ App Shell ══════════════════════════════════════════════════
+   Full-viewport layout: topbar → [sidebar | main]
+   Nothing outside this shell scrolls.
+═══════════════════════════════════════════════════════════════ */
+    #app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* ── Topbar ────────────────────────────────────────────────── */
+    .topbar {
+      height: var(--topbar-h);
+      flex-shrink: 0;
+      background: var(--sidebar);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      gap: 16px;
+      z-index: 300;
+    }
+
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -.03em;
+      border-right: 1px solid var(--border);
+      padding-right: 16px;
+      margin-right: 4px;
+    }
+
+    .topbar-logo span {
+      color: var(--accent)
+    }
+
+    .topbar-center {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0
+    }
+
+    /* ── Profile Dropdown ───────────────────────────────────────── */
+    .usr-chip-wrapper {
+      position: relative;
+    }
+
+    .usr-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 180px;
+      background: var(--sidebar);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+      padding: 8px;
+      display: none;
+      z-index: 1000;
+      text-align: left;
+    }
+
+    .usr-chip-wrapper:hover .usr-dropdown {
+      display: block;
+    }
+
+    .usr-info-box {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+    }
+
+    .usr-info-name {
+      font-weight: 800;
+      font-size: 12px;
+      display: block;
+      color: var(--text);
+    }
+
+    .usr-info-email {
+      font-size: 10px;
+      color: var(--text2);
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .usr-info-role {
+      display: inline-block;
+      font-size: 8.5px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--blue-bg);
+      color: var(--blue);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+    }
+
+    .usr-dropdown-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text2);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+
+    .usr-dropdown-link:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .usr-dropdown-link.logout {
+      color: #ef4444;
+    }
+
+    .usr-dropdown-link.logout:hover {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+
+    /* ── Body row ──────────────────────────────────────────────── */
+    #body-row {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ───────────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 12px 10px;
+      gap: 2px;
+      z-index: 200;
+    }
+
+    .sidebar-section {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      padding: 10px 8px 4px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .15s;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      font-family: var(--font);
+    }
+
+    .sidebar-item:hover {
+      background: var(--surface2);
+      color: var(--text)
+    }
+
+    .sidebar-item.active {
+      background: var(--blue-bg);
+      color: var(--blue);
+      border: 1px solid var(--blue-bd);
+    }
+
+    .sidebar-item.active svg {
+      stroke: var(--blue)
+    }
+
+    .sidebar-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 8px 4px
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      padding-top: 12px
+    }
+
+    /* ── Main content area ─────────────────────────────────────── */
+    #main-area {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Page header strip ──────────────────────────────────────── */
+    .page-hdr {
+      flex-shrink: 0;
+      background: var(--sidebar);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    /* ── Scrollable content ─────────────────────────────────────── */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 20px 24px 32px;
+    }
+
+    /* ═══ Cards ══════════════════════════════════════════════════════ */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.04), 0 6px 16px rgba(0,0,0,.04);
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .card:hover {
+      border-color: var(--border2);
+      box-shadow: 0 2px 8px rgba(0,0,0,.07), 0 8px 24px rgba(0,0,0,.06);
+    }
+
+    .card-accent {
+      border-top: 2px solid var(--accent)
+    }
+
+    .card-hdr {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -.01em
+    }
+
+    .card-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.45
+    }
+
+    /* ═══ Dashboard Grids ════════════════════════════════════════════
+   KPI strip — 7 equal columns, compact height
+   Middle — 3 columns, tall
+   Bottom — full width
+═══════════════════════════════════════════════════════════════ */
+    .g-kpi {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .g-mid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.6fr;
+      gap: 12px;
+      margin-bottom: 14px;
+      max-height: 360px;
+    }
+
+    .g-mid>* {
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .g-insights {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .g-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px
+    }
+
+    .g-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px
+    }
+
+    .g-main {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 10px
+    }
+
+    .g-pipe {
+      display: grid;
+      grid-template-columns: 1fr 270px;
+      gap: 0;
+      min-height: 420px
+    }
+
+    @media(max-width:1200px) {
+      .g-kpi {
+        grid-template-columns: repeat(4, 1fr)
+      }
+
+      .g-mid {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .g-insights {
+        grid-template-columns: repeat(2, 1fr)
+      }
+    }
+
+    @media(max-width:800px) {
+      :root {
+        --sidebar-w: 0px
+      }
+
+      .sidebar {
+        display: none
+      }
+
+      .g-kpi {
+        grid-template-columns: repeat(2, 1fr)
+      }
+
+      .g-mid,
+      .g-insights {
+        grid-template-columns: 1fr
+      }
+    }
+
+    /* ═══ KPI / Metric cards ═════════════════════════════════════════ */
+    .metric-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      transition: border-color .2s, transform .15s, box-shadow .2s;
+      cursor: default;
+    }
+
+    .metric-card:hover {
+      border-color: var(--border2);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,.06);
+    }
+
+    .metric-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 24px;
+      font-weight: 900;
+      font-family: var(--mono);
+      line-height: 1
+    }
+
+    .metric-sub {
+      font-size: 10.5px;
+      color: var(--muted);
+      margin-top: 5px
+    }
+
+    .metric-bar {
+      height: 3px;
+      background: var(--border2);
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 8px 0 4px
+    }
+
+    .metric-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 1s ease
+    }
+
+    /* ═══ Badges ═════════════════════════════════════════════════════ */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 20px;
+      white-space: nowrap;
+      line-height: 1.5;
+      letter-spacing: .02em;
+    }
+
+    .bd-default {
+      background: var(--surface2);
+      color: var(--text2);
+      border: 1px solid var(--border)
+    }
+
+    .bd-blue {
+      background: var(--blue-bg);
+      color: var(--blue);
+      border: 1px solid var(--blue-bd)
+    }
+
+    .bd-green {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-bd)
+    }
+
+    .bd-amber {
+      background: var(--amber-bg);
+      color: var(--amber);
+      border: 1px solid var(--amber-bd)
+    }
+
+    .bd-red {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid var(--red-bd)
+    }
+
+    .bd-purple {
+      background: var(--purple-bg);
+      color: var(--purple);
+      border: 1px solid var(--purple-bd)
+    }
+
+    .bd-teal {
+      background: var(--teal-bg);
+      color: var(--teal);
+      border: 1px solid var(--teal-bd)
+    }
+
+    /* ═══ Buttons ════════════════════════════════════════════════════ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: all .15s;
+      border: 1px solid transparent;
+      background: transparent;
+    }
+
+    .btn-ghost {
+      color: var(--muted);
+      border-color: var(--border)
+    }
+
+    .btn-ghost:hover {
+      background: var(--surface2);
+      color: var(--text)
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue)
+    }
+
+    .btn-primary:hover {
+      opacity: .88
+    }
+
+    .btn-icon {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      justify-content: center;
+      border-radius: 7px;
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-icon:hover {
+      background: var(--surface);
+      color: var(--text)
+    }
+
+    /* ═══ View toggle ════════════════════════════════════════════════ */
+    .view-toggle {
+      display: flex;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .view-btn {
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: none;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--font);
+      cursor: pointer;
+      color: var(--muted);
+      background: transparent;
+      transition: all .15s;
+    }
+
+    .view-btn.active {
+      background: var(--card);
+      color: var(--text);
+      box-shadow: var(--shadow)
+    }
+
+    /* ═══ Tab bar ════════════════════════════════════════════════════ */
+    .tab-bar {
+      display: flex;
+      gap: 3px;
+      flex-wrap: wrap
+    }
+
+    .tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 10px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .tab-btn:hover {
+      background: var(--card);
+      color: var(--text2)
+    }
+
+    .tab-btn.active {
+      background: var(--blue-bg);
+      border-color: var(--blue-bd);
+      color: var(--blue)
+    }
+
+    /* ═══ Table ══════════════════════════════════════════════════════ */
+    .tbl-wrap {
+      overflow-x: auto
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    thead th {
+      background: var(--surface2);
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      padding: 9px 13px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 9px 13px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none
+    }
+
+    tbody tr:hover td {
+      background: var(--surface2);
+      transition: background .1s
+    }
+
+    /* ═══ Progress ═══════════════════════════════════════════════════ */
+    .prog {
+      height: 3px;
+      background: var(--border2);
+      border-radius: 99px;
+      overflow: hidden
+    }
+
+    .prog-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .6s ease
+    }
+
+    /* ═══ Notification panel ══════════════════════════════════════════ */
+    .notif-wrap {
+      position: relative
+    }
+
+    .notif-count {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 15px;
+      height: 15px;
+      background: var(--red);
+      color: #fff;
+      font-size: 8px;
+      font-weight: 800;
+      border-radius: 99px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 3px;
+      border: 2px solid var(--sidebar);
+    }
+
+    .notif-panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 360px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      box-shadow: var(--shadow-lg);
+      z-index: 500;
+      max-height: 440px;
+      overflow-y: auto;
+    }
+
+    .notif-item {
+      display: flex;
+      gap: 10px;
+      padding: 11px 15px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background .1s;
+    }
+
+    .notif-item:last-child {
+      border-bottom: none
+    }
+
+    .notif-item:hover {
+      background: var(--surface2)
+    }
+
+    /* ═══ Pipeline ════════════════════════════════════════════════════ */
+    .pipe-list {
+      display: flex;
+      flex-direction: column
+    }
+
+    .pipe-item {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      cursor: pointer
+    }
+
+    .pipe-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: 99px;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--muted);
+      flex-shrink: 0;
+      margin-top: 11px;
+      transition: all .2s;
+    }
+
+    .pipe-circle.done {
+      background: var(--green);
+      border-color: var(--green);
+      color: #0f2e1e
+    }
+
+    .pipe-circle.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+      box-shadow: 0 0 0 3px var(--blue-bg)
+    }
+
+    .pipe-circle.warn {
+      background: var(--amber);
+      border-color: var(--amber);
+      color: #1c0a00
+    }
+
+    .pipe-line {
+      width: 2px;
+      flex: 1;
+      min-height: 12px;
+      background: var(--border);
+      margin: 2px auto
+    }
+
+    .pipe-line.done {
+      background: var(--green-bd)
+    }
+
+    .pipe-content {
+      padding: 7px 10px;
+      border-radius: 9px;
+      margin: 3px 4px 3px 0;
+      border-left: 2px solid transparent;
+      transition: all .15s;
+    }
+
+    .pipe-content:hover {
+      background: var(--surface2)
+    }
+
+    .pipe-content.sel {
+      background: var(--blue-bg);
+      border-left-color: var(--blue)
+    }
+
+    /* ═══ Funnel ══════════════════════════════════════════════════════ */
+    .funnel-row {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--surface2);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 5px;
+    }
+
+    .funnel-track {
+      flex: 1;
+      height: 6px;
+      background: var(--border2);
+      border-radius: 99px;
+      overflow: hidden
+    }
+
+    /* ═══ Unassigned ══════════════════════════════════════════════════ */
+    .ua-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+    }
+
+    .ua-row:last-child {
+      border-bottom: none
+    }
+
+    /* ═══ Live dot ════════════════════════════════════════════════════ */
+    .live-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: var(--green);
+      border-radius: 99px;
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    /* ═══ Insights widgets ════════════════════════════════════════════ */
+    .wi-body canvas {
+      display: block
+    }
+
+    @keyframes cardReveal {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .wi-card-reveal {
+      animation: cardReveal .38s ease both
+    }
+
+    /* ─── Insights geometry-aware grid ──────────────────────── */
+    .wi-grid-layout {
+      display: grid;
+      gap: 12px;
+      grid-template-areas: "c1 c2 c3 c4" "fr fr fr fr" "b1 b1 b2 b2";
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
+
+    .wi-c1 {
+      grid-area: c1
+    }
+
+    .wi-c2 {
+      grid-area: c2
+    }
+
+    .wi-c3 {
+      grid-area: c3
+    }
+
+    .wi-c4 {
+      grid-area: c4
+    }
+
+    .wi-fr {
+      grid-area: fr
+    }
+
+    .wi-b1 {
+      grid-area: b1
+    }
+
+    .wi-b2 {
+      grid-area: b2
+    }
+
+    .wi-overflow {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 12px
+    }
+
+    @media(max-width:1000px) {
+      .wi-grid-layout {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: "c1 c2" "c3 c4" "fr fr" "b1 b2"
+      }
+    }
+
+    @media(max-width:620px) {
+      .wi-grid-layout {
+        grid-template-columns: 1fr;
+        grid-template-areas: "c1" "c2" "c3" "c4" "fr" "b1" "b2"
+      }
+    }
+
+
+    .text-wrap {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .hidden {
+      display: none !important
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app-shell">
+
+    <!-- ─── Topbar ─────────────────────────────────────────────── -->
+    <div class="topbar">
+      <!-- Logo / brand -->
+      <div class="topbar-logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+        </svg>
+        <span>XAPP</span>
+      </div>
+      <!-- Center: Lens switcher (moved from sidebar) -->
+      <div class="topbar-center">
+        <div class="view-toggle">
+          <button class="view-btn active" id="sb-overview" onclick="switchLens('ops')">Operations Overview</button>
+          <button class="view-btn" id="sb-insights" onclick="switchLens('insights')">Workflow Insights</button>
+        </div>
+      </div>
+      <!-- Right: status + actions -->
+      <div class="topbar-right">
+        <div id="health-pill"
+          style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:7px;font-size:10px;font-weight:700;border:1px solid var(--border)">
+          <div id="hdot" style="width:5px;height:5px;border-radius:99px"></div>
+          <span id="hlabel"></span>
+        </div>
+        <div
+          style="display:flex;align-items:center;gap:5px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-size:10px;color:var(--muted)">
+          <span class="live-dot"></span> Live
+        </div>
+        <div class="notif-wrap" id="notif-wrap">
+          <button class="btn btn-icon" onclick="toggleNotif()" title="Notifications">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 01-3.46 0" />
+            </svg>
+            <span class="notif-count hidden" id="n-count"></span>
+          </button>
+          <div class="notif-panel hidden slide-down" id="notif-panel"></div>
+        </div>
+        <!-- Theme Toggle Restore -->
+        <button class="btn btn-icon" onclick="toggleTheme()" title="Toggle theme">
+          <svg id="t-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+          <svg id="t-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" class="hidden">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+          </svg>
+        </button>
+        <!-- User Info Chip -->
+        <div class="usr-chip-wrapper">
+          <div class="usr-chip">
+            <div class="usr-avatar"
+              style="width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px;">
+              {% if member and member.name %}{{ member.name[:2].upper() }}{% else %}NA{% endif %}
+            </div>
+            <span class="usr-name" style="font-weight: 700; font-size: 11px;">{{ member.name if member else 'Guest'
+              }}</span>
+          </div>
+          {% if member %}
+          <div class="usr-dropdown">
+            <div class="usr-info-box">
+              <span class="usr-info-name">{{ member.name }}</span>
+              <span class="usr-info-email" title="{{ member.email }}">{{ member.email }}</span>
+              <span class="usr-info-role">{{ member.role }}</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="usr-dropdown-link logout">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+              </svg>
+              Sign out
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Body row: sidebar + main ────────────────────────────── -->
+    <div id="body-row">
+
+      <!-- ── Sidebar (Unified Navigation) ────────────────────────────── -->
+      <nav class="sidebar" id="sidebar">
+        <div class="sidebar-section">Main Menu</div>
+        <a href="{{ url_for('home') }}" class="sidebar-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          Upload
+        </a>
+        <a href="{{ url_for('member_home') }}" class="sidebar-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <path d="M8 21h8M12 17v4" />
+          </svg>
+          Workbench
+        </a>
+        <a href="{{ url_for('manager_dashboard', workflow_id=selected_workflow_id) }}" class="sidebar-item active">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+          Manager
+        </a>
+        <a href="{{ url_for('member_dashboard', workflow_id=selected_workflow_id) }}" class="sidebar-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          Member
+        </a>
+      </nav>
+
+      <!-- ── Main area ─────────────────────────────────────────────── -->
+      <div id="main-area">
+        <!-- Page header strip — shows workflow title + HITL pills -->
+        <div class="page-hdr">
+          <div style="font-size:11px;font-weight:700;color:var(--text2)" id="page-hdr-left"></div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <form method="get" action="{{ url_for('manager_dashboard') }}"
+              style="display:flex;align-items:center;gap:6px;">
+              <div style="display:flex;align-items:center;gap:5px;padding:3px 8px;background:var(--blue-bg);border:1px solid var(--blue-bd);border-radius:6px;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.5"><circle cx="5" cy="12" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="19" cy="19" r="2"/><path d="M7 12h3l2-5h2"/><path d="M7 12h3l2 5h2"/></svg>
+                <span style="font-size:9px;color:var(--blue);font-weight:800;letter-spacing:.08em;text-transform:uppercase;">Workflow</span>
+              </div>
+              <div style="position:relative;">
+                <select name="workflow_id" onchange="this.form.submit()" style="
+                  appearance:none;-webkit-appearance:none;
+                  background:var(--card);
+                  border:1px solid var(--border2);
+                  border-radius:8px;
+                  padding:5px 32px 5px 10px;
+                  font-size:11px;font-weight:600;
+                  color:var(--text);
+                  min-width:190px;
+                  font-family:var(--font);
+                  cursor:pointer;
+                  box-shadow:0 1px 3px rgba(0,0,0,.06);
+                  transition:border-color .15s, box-shadow .15s;
+                ">
+                  {% for wf in workflows %}
+                  <option value="{{ wf.workflow_id }}" {% if selected_workflow_id==wf.workflow_id %}selected{% endif %}>P{{ wf.priority }} · {{ wf.workflow_id }}</option>
+                  {% endfor %}
+                </select>
+                <div style="position:absolute;right:9px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted)">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+            </form>
+            <form method="get" action="{{ url_for('manager_dashboard') }}"
+              style="display:flex;align-items:center;gap:6px;">
+              <input type="hidden" name="workflow_id" value="{{ selected_workflow_id }}" />
+              <div style="display:flex;align-items:center;gap:5px;padding:3px 8px;background:var(--purple-bg);border:1px solid var(--purple-bd);border-radius:6px;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span style="font-size:9px;color:var(--purple);font-weight:800;letter-spacing:.08em;text-transform:uppercase;">Job</span>
+              </div>
+              <div style="position:relative;">
+                <select name="assigned_job_id" onchange="this.form.submit()" style="
+                  appearance:none;-webkit-appearance:none;
+                  background:var(--card);
+                  border:1px solid var(--border2);
+                  border-radius:8px;
+                  padding:5px 32px 5px 10px;
+                  font-size:11px;font-weight:600;
+                  color:var(--text);
+                  min-width:220px;
+                  font-family:var(--font);
+                  cursor:pointer;
+                  box-shadow:0 1px 3px rgba(0,0,0,.06);
+                  transition:border-color .15s, box-shadow .15s;
+                ">
+                  {% for aj in assigned_jobs %}
+                  <option value="{{ aj.assigned_job_id }}" {% if selected_assigned_job_id==aj.assigned_job_id %}selected{% endif %}>P{{ aj.priority }} · {{ aj.job_name }}</option>
+                  {% endfor %}
+                </select>
+                <div style="position:absolute;right:9px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted)">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+            </form>
+            <div id="hitl-pills-bar" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+          </div>
+        </div>
+
+        <!-- ─── Main scrollable content ─────────────────────────── -->
+        <div class="main-content">
+
+          <!-- ─── Manager view ──────────────────────────────────────── -->
+          <div id="view-manager">
+
+            <!-- KPI row — always visible in both lenses -->
+            <div class="g-kpi" style="margin-bottom:10px" id="kpis"></div>
+
+            <!-- ── Overview lens ─────────────────────────────────────────── -->
+            <div id="lens-ops">
+
+              <!-- Middle row: Throughput · Unassigned Jobs · Active Load -->
+              <div class="g-mid" style="margin-bottom:10px">
+
+                <!-- Throughput -->
+                <div class="card" style="display:flex;flex-direction:column">
+                  <div class="card-hdr">
+                    <div>
+                      <div class="card-title">Throughput</div>
+                      <div class="card-sub">Pace, trend &amp; estimated finish</div>
+                    </div>
+                    <span class="badge bd-teal" id="tp-badge"></span>
+                  </div>
+                  <div style="padding:16px 18px;flex:1;display:flex;flex-direction:column;gap:14px">
+
+                    <!-- Row 1: current rate + ETA -->
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+                      <div>
+                        <div style="font-size:22px;font-weight:900;font-family:var(--mono);color:var(--teal);line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px"
+                          id="tp-val"></div>
+                        <div style="font-size:10px;color:var(--muted);margin-top:3px">batches / hr now</div>
+                      </div>
+                      <div style="text-align:right">
+                        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:2px">ETA</div>
+                        <div
+                          style="font-size:18px;font-weight:900;font-family:var(--mono);color:var(--text);line-height:1"
+                          id="tp-eta">—</div>
+                        <div style="font-size:10px;color:var(--muted);margin-top:3px" id="tp-eta-sub"></div>
+                      </div>
+                    </div>
+
+                    <!-- Row 2: pace bar (actual vs required) -->
+                    <div>
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+                        <span
+                          style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Pace
+                          vs Required</span>
+                        <span style="font-size:10px;font-weight:700;font-family:var(--mono)" id="tp-pace-label"></span>
+                      </div>
+                      <div
+                        style="height:6px;background:var(--border2);border-radius:99px;overflow:hidden;position:relative">
+                        <!-- required marker line -->
+                        <div id="tp-req-marker"
+                          style="position:absolute;top:0;width:2px;height:100%;background:var(--muted);z-index:2"></div>
+                        <!-- actual fill -->
+                        <div id="tp-pace-fill"
+                          style="height:100%;border-radius:99px;transition:width .8s ease;max-width:100%"></div>
+                      </div>
+                      <div style="display:flex;justify-content:space-between;margin-top:4px">
+                        <span style="font-size:9px;color:var(--muted)" id="tp-pace-actual"></span>
+                        <span style="font-size:9px;color:var(--muted)" id="tp-pace-required"></span>
+                      </div>
+                    </div>
+
+                    <!-- Row 3: sparkline trend -->
+                    <div style="flex:1;min-height:0">
+                      <div
+                        style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">
+                        Rate Over Time</div>
+                      <canvas id="c-spark" height="58"></canvas>
+                    </div>
+
+                  </div>
+                </div>
+
+                <!-- Unassigned Jobs -->
+                <div class="card" style="display:flex;flex-direction:column">
+                  <div class="card-hdr">
+                    <div>
+                      <div class="card-title">Unassigned Batches</div>
+                      <div class="card-sub">Human review steps with batches waiting for a reviewer</div>
+                    </div>
+                    <span class="badge bd-blue" id="ua-badge"></span>
+                  </div>
+                  <div id="ua-list" style="flex:1;overflow-y:auto;overflow-x:hidden;max-height:220px"></div>
+                </div>
+
+                <!-- Active Load by Step -->
+                <div class="card" style="display:flex;flex-direction:column">
+                  <div class="card-hdr">
+                    <div>
+                      <div class="card-title">Active Load by Step</div>
+                      <div class="card-sub">Steps with batches currently in progress · idle steps hidden</div>
+                    </div>
+                  </div>
+                  <div style="padding:8px 14px 8px;flex:1;display:flex;flex-direction:column;justify-content:center;overflow:hidden">
+                    <div style="position:relative;height:200px"><canvas id="c-stepload"></canvas></div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Workflow visualization -->
+              <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0">
+                <div class="card-hdr">
+                  <div>
+                    <div class="card-title">Workflow Visualization</div>
+                    <div class="card-sub" id="viz-sub"></div>
+                  </div>
+                  <div class="tab-bar">
+                    <button class="tab-btn active" id="tb-flow" onclick="switchTab('flow')">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="5" cy="12" r="2" />
+                        <circle cx="19" cy="5" r="2" />
+                        <circle cx="19" cy="19" r="2" />
+                        <path d="M7 12h3l2-5h2" />
+                        <path d="M7 12h3l2 5h2" />
+                      </svg> Flow
+                    </button>
+                    <button class="tab-btn" id="tb-table" onclick="switchTab('table')">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                      </svg> Table
+                    </button>
+                    <button class="tab-btn" id="tb-pipeline" onclick="switchTab('pipeline')">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <line x1="8" y1="6" x2="21" y2="6" />
+                        <line x1="8" y1="12" x2="21" y2="12" />
+                        <line x1="8" y1="18" x2="21" y2="18" />
+                        <line x1="3" y1="6" x2="3.01" y2="6" />
+                        <line x1="3" y1="12" x2="3.01" y2="12" />
+                        <line x1="3" y1="18" x2="3.01" y2="18" />
+                      </svg> Pipeline
+                    </button>
+                    <button class="tab-btn" id="tb-funnel" onclick="switchTab('funnel')">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                      </svg> Funnel
+                    </button>
+                    <button class="tab-btn" id="tb-chart" onclick="switchTab('chart')">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                      </svg> Time Chart
+                    </button>
+                    <button class="tab-btn" id="tb-batches" onclick="switchTab('batches')">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                        <polyline points="10 9 9 9 8 9" />
+                      </svg> Batches
+                    </button>
+                  </div>
+                </div>
+                <!-- Tab panels -->
+                <div id="tv-flow" style="padding:0">
+                  <!-- toolbar -->
+                  <div id="flow-toolbar"
+                    style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap">
+                    <div style="display:flex;align-items:center;gap:5px" id="flow-legend"></div>
+                    <div style="margin-left:auto;display:flex;gap:6px">
+                      <button onclick="flowFit()"
+                        style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);font-size:11px;font-weight:600;color:var(--text2);cursor:pointer">⊡
+                        Fit</button>
+                      <button onclick="flowReset()"
+                        style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);font-size:11px;font-weight:600;color:var(--text2);cursor:pointer">↺
+                        Reset</button>
+                    </div>
+                  </div>
+                  <!-- cytoscape canvas -->
+                  <div id="cy" style="width:100%;height:420px;background:var(--surface);cursor:grab"></div>
+                  <!-- node detail tooltip -->
+                  <div id="flow-tip"
+                    style="display:none;position:absolute;z-index:200;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;box-shadow:var(--shadow);min-width:200px;max-width:260px;pointer-events:none">
+                  </div>
+                </div>
+                <div id="tv-table" class="hidden">
+                  <div class="tbl-wrap" id="steps-tbl"></div>
+                </div>
+                <div id="tv-pipeline" class="hidden">
+                  <div class="g-pipe">
+                    <div style="border-right:1px solid var(--border);overflow-y:auto;max-height:560px;padding:10px 0"
+                      id="pipe-list"></div>
+                    <div style="padding:18px" id="pipe-detail">
+                      <div style="color:var(--muted);font-size:12px;padding-top:20px;text-align:center">← Select a step
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div id="tv-funnel" class="hidden" style="padding:18px" id="funnel-view"></div>
+                <div id="tv-chart" class="hidden">
+                  <div id="time-chart-inner" style="padding:16px 18px"></div>
+                </div>
+                <div id="tv-batches" class="hidden">
+                  <div style="padding:16px 18px">
+                    <div class="tbl-wrap" id="batches-tbl"></div>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /lens-ops -->
+
+            <!-- ── Workflow Insights lens ───────────────────────────── -->
+            <div id="lens-insights" class="hidden">
+
+              <!-- ── Insights top bar ─────────────────────────────── -->
+              <div
+                style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:12px;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:14px">
+                  <div>
+                    <div style="font-size:18px;font-weight:900;color:var(--text);letter-spacing:-.02em"
+                      id="wi-domain-label">Workflow Insights</div>
+                    <div style="font-size:11px;color:var(--muted);margin-top:2px" id="wi-domain-sub">Domain-specific
+                      metrics for this workflow</div>
+                  </div>
+                  <!-- Status key inline pills -->
+                  <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+                    <span
+                      style="font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">Key:</span>
+                    <span
+                      style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--green);background:var(--green-bg);border:1px solid var(--green-bd);padding:2px 7px;border-radius:20px">
+                      <span
+                        style="width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0"></span>On
+                      track — at or above target
+                    </span>
+                    <span
+                      style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber-bd);padding:2px 7px;border-radius:20px">
+                      <span
+                        style="width:5px;height:5px;border-radius:50%;background:var(--amber);flex-shrink:0"></span>Monitor
+                      — below warn threshold
+                    </span>
+                    <span
+                      style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--red);background:var(--red-bg);border:1px solid var(--red-bd);padding:2px 7px;border-radius:20px">
+                      <span style="width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0"></span>At
+                      risk — below critical threshold
+                    </span>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div id="wi-status-pill"
+                    style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;background:var(--blue-bg);border:1px solid var(--blue-bd);color:var(--blue)">
+                    <span style="width:5px;height:5px;border-radius:50%;background:var(--blue)"></span>
+                    <span id="wi-status-text">Loading…</span>
+                  </div>
+                  <button onclick="refreshInsights()"
+                    style="padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.5">
+                      <polyline points="23 4 23 10 17 10" />
+                      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                    </svg>
+                    Refresh
+                  </button>
+                </div>
+              </div>
+
+              <!-- ── Dashboard grid — populated by renderWorkflowInsights() ── -->
+              <div id="wi-grid" class="wi-grid-layout"></div>
+
+              <!-- Attribution -->
+              <div style="margin-top:10px;font-size:10px;color:var(--muted);text-align:right;letter-spacing:.02em"
+                id="wi-attribution"></div>
+            </div><!-- /lens-insights -->
+
+          </div>
+
+          <!-- ─── Member view placeholder ───────────────────────────── -->
+          <div id="view-member" class="hidden">
+            <div class="card" style="padding:48px;text-align:center;margin:20px">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5"
+                style="margin:0 auto 12px;opacity:.4">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+              </svg>
+              <div style="font-size:14px;font-weight:800;color:var(--text)">Member View</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:6px">Claim batches, manage your queue, and view
+                batch
+                details.</div>
+            </div>
+          </div>
+
+        </div><!-- /main-content -->
+      </div><!-- /main-area -->
+    </div><!-- /body-row -->
+  </div><!-- /app-shell -->
+
+  <script>
+    // ══════════════════════════════════════════════════════════
+    //  DATA
+    // ══════════════════════════════════════════════════════════
+    const D = {{ dashboard_data| safe }};
+    const STEPS_MAP = {{ step_names_map| safe }};
+    const SYNTH_RAW = {{ synthetic_data| safe }};
+    const SELECTED_WORKFLOW_NAME = {{ selected_workflow_name| tojson }};
+    const BATCHS = SYNTH_RAW.dataset?.batches || [];
+
+    // Transform steps map into sorted array
+    const STEPS = Object.keys(STEPS_MAP)
+      .sort((a, b) => parseInt(a) - parseInt(b))
+      .map(o => ({
+        o: parseInt(o),
+        n: STEPS_MAP[o].n,
+        h: STEPS_MAP[o].n.toLowerCase().startsWith('hypo') // Detect HITL by name prefix
+      }));
+
+    const N_HITL = STEPS.filter(s => s.h).length;
+    const N_BOT = STEPS.length - N_HITL;
+
+    // Pre-format tph rate for display: prefer the most recent sparkline bucket
+    // (last value in tpHist) over the all-time average (D.tph), because the
+    // all-time avg becomes artificially tiny when elapsed time is large but
+    // recent activity is much higher.
+    const _tph = D.tph || 0;
+    const _tpHistLast = (D.tpHist && D.tpHist.length > 0) ? D.tpHist[D.tpHist.length - 1] : _tph;
+    const _tphDisplay = _tpHistLast > 0 ? _tpHistLast : _tph;
+    const tphFmt = _tphDisplay === 0 ? '0'
+      : _tphDisplay < 1 ? parseFloat(_tphDisplay.toPrecision(4)).toString()
+      : parseFloat(_tphDisplay.toFixed(2)).toString();
+
+    // Initialise BN (Bottleneck)
+    const BN_ORDER = D.bn_order !== undefined ? D.bn_order : -1;
+    const BN = D.steps.find(s => s.o === BN_ORDER) || { o: -1, active: 0 };
+    const BN_META = STEPS[BN.o] || { n: 'None' };
+
+
+    // ══════════════════════════════════════════════════════════
+    //  WORKFLOW META — bot descriptions + IO for LLM prompt
+    // ══════════════════════════════════════════════════════════
+    const WORKFLOW_META = {
+      session_id: 'session_1769594171012',
+      domain: SELECTED_WORKFLOW_NAME,
+      description: `{{ selected_workflow_id }}`,
+      bots: []
+    };
+
+
+    // ══════════════════════════════════════════════════════════
+    //  STATIC WIDGET SPECS
+    //  These represent what the LLM would return for this workflow.
+    //  In production, replace with the LLM API call below.
+    //  Each spec drives one widget shell in the Insights view.
+    // ══════════════════════════════════════════════════════════
+
+
+    const VAR = D.exp_s > 0 ? Math.round((D.avg_s - D.exp_s) / D.exp_s * 100) : 0;
+    const TOT_STALE = D.steps.reduce((a, b) => a + (b.stale || 0), 0);
+    const TOT_UA = D.steps.reduce((a, b) => a + (b.unassigned || 0), 0);
+    const HITL_ACT = D.steps.filter((_, i) => STEPS[i]?.h).reduce((a, b) => a + (b.active || 0), 0);
+
+    // ══════════════════════════════════════════════════════════
+    //  HELPERS
+    // ══════════════════════════════════════════════════════════
+    function ft(s) {
+      if (!s && s !== 0) return '—';
+      s = Math.max(0, Math.round(s));
+      const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
+      if (h) return `${h}h ${String(m).padStart(2, '0')}m`;
+      if (m) return `${m}m ${String(ss).padStart(2, '0')}s`;
+      return `${ss}s`;
+    }
+    function badge(cls, html) { return `<span class="badge ${cls}">${html}</span>` }
+    function ic(name, sz = 14, col = 'currentColor') {
+      const p = {
+        warn: `<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
+        clock: `<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>`,
+        trend: `<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>`,
+        user: `<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>`,
+        x: `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`,
+        chk: `<polyline points="20 6 9 17 4 12"/>`,
+        human: `<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>`,
+        bot: `<rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="11"/><line x1="8" y1="15" x2="8" y2="17"/><line x1="16" y1="15" x2="16" y2="17"/>`,
+        lay: `<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>`,
+        zap: `<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>`,
+        bar: `<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>`,
+      };
+      return `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p[name] || ''}</svg>`;
+    }
+    function gc() {
+      const dk = document.documentElement.getAttribute('data-theme') !== 'light';
+      return {
+        blue: dk ? '#3b82f6' : '#2563eb', green: dk ? '#22c55e' : '#16a34a',
+        amber: dk ? '#f59e0b' : '#d97706', red: dk ? '#ef4444' : '#dc2626',
+        purple: dk ? '#a78bfa' : '#7c3aed', teal: dk ? '#22d3ee' : '#0891b2',
+        border: dk ? '#252f45' : '#e2e8f0', muted: dk ? '#4b5877' : '#94a3b8',
+        text: dk ? '#e2e8f0' : '#0f172a', surface: dk ? '#1a2235' : '#f8fafc',
+        card: dk ? '#1a2235' : '#ffffff',
+      };
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  CHARTS
+    // ══════════════════════════════════════════════════════════
+    const CH = {};
+    function destroyChart(id) { if (CH[id]) { CH[id].destroy(); delete CH[id]; } }
+
+    // ── Global Chart.js font — canvas ignores CSS, must be set explicitly ─────
+    Chart.defaults.font.family = "'Geist', system-ui, -apple-system, sans-serif";
+    Chart.defaults.font.size   = 11;
+    Chart.defaults.font.weight = '500';
+
+    const ttBase = { backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderWidth: 1, titleColor: 'var(--text)', bodyColor: 'var(--text2)', padding: 8 };
+
+
+    function renderSpark() {
+      const c = gc();
+      const hist = D.tpHist || [];
+      const last = hist[hist.length - 1] || 0;
+      const first = hist[0] || 1;
+      const tph = _tph;
+      const tphFmtLocal = tphFmt;   // module-level: already uses last tpHist bucket
+
+      // ── Current rate ─────────────────────────────────────────────
+      document.getElementById('tp-val').textContent = tphFmtLocal;
+
+      // ── Trend badge ───────────────────────────────────────────────
+      const trendPct = first > 0 ? Math.round((last / first - 1) * 100) : 0;
+      document.getElementById('tp-badge').textContent = `${trendPct >= 0 ? '+' : ''}${trendPct}% vs start`;
+
+      // ── ETA calculation ───────────────────────────────────────────
+      const jobsLeft = (D.total || 0) - (D.completed || 0);
+      const etaEl = document.getElementById('tp-eta');
+      const etaSubEl = document.getElementById('tp-eta-sub');
+      if (tph > 0 && jobsLeft >= 0) {
+        const hoursLeft = jobsLeft / tph;
+        const etaDate = new Date(Date.now() + hoursLeft * 3600 * 1000);
+        const hh = etaDate.getHours().toString().padStart(2, '0');
+        const mm = etaDate.getMinutes().toString().padStart(2, '0');
+        etaEl.textContent = `${hh}:${mm}`;
+        const minsLeft = Math.round(hoursLeft * 60);
+        etaSubEl.textContent = minsLeft < 60
+          ? `~${minsLeft}m remaining`
+          : `~${Math.round(hoursLeft * 10) / 10}h remaining`;
+        // Colour ETA red if > 4h
+        etaEl.style.color = hoursLeft > 4 ? 'var(--red)' : hoursLeft > 2 ? 'var(--amber)' : 'var(--green)';
+      } else if (jobsLeft === 0) {
+        etaEl.textContent = 'Done';
+        etaEl.style.color = 'var(--green)';
+        etaSubEl.textContent = 'All batches complete';
+      } else {
+        etaEl.textContent = '—';
+        etaSubEl.textContent = 'No rate data yet';
+        etaEl.style.color = 'var(--muted)';
+      }
+
+      // ── Pace bar: actual vs required rate to finish in time ───────
+      // "Required" = jobs_left / remaining hours budget (assume 4h max run)
+      const elapsedHours = hist.length > 1 ? hist.length - 1 : 1; // rough proxy
+      const budgetHours = 4; // workflow budget
+      const hoursUsed = Math.min(elapsedHours, budgetHours);
+      const hoursRemaining = Math.max(budgetHours - hoursUsed, 0.5);
+      const requiredRate = jobsLeft > 0 ? Math.ceil(jobsLeft / hoursRemaining) : 0;
+      const maxRate = Math.max(tph, requiredRate, 1);
+      const actualPct = Math.min(Math.round((tph / maxRate) * 100), 100);
+      const reqMarkerPct = Math.min(Math.round((requiredRate / maxRate) * 100), 100);
+
+      const onTrack = tph >= requiredRate;
+      const paceColor = onTrack ? 'var(--green)' : tph >= requiredRate * 0.75 ? 'var(--amber)' : 'var(--red)';
+
+      document.getElementById('tp-pace-fill').style.width = actualPct + '%';
+      document.getElementById('tp-pace-fill').style.background = paceColor;
+      document.getElementById('tp-req-marker').style.left = reqMarkerPct + '%';
+      document.getElementById('tp-pace-label').textContent = onTrack ? '✓ On track' : '⚠ Behind pace';
+      document.getElementById('tp-pace-label').style.color = paceColor;
+      document.getElementById('tp-pace-actual').textContent = `actual: ${tphFmtLocal}/hr`;
+      document.getElementById('tp-pace-required').textContent = `need: ${requiredRate}/hr`;
+
+      // ── Sparkline with real-time labels ──────────────────────────
+      // Build meaningful x-axis labels: show actual clock times if possible,
+      // otherwise use "−Nh" relative labels (most recent = "now")
+      let labels;
+      const rawLabels = D.tpLabels || [];
+      // Check if backend already sent timestamps (HH:MM format) — use them directly
+      const looksLikeTime = rawLabels.length > 0 && /^\d{1,2}:\d{2}$/.test(rawLabels[0]);
+      if (looksLikeTime) {
+        labels = rawLabels;
+      } else {
+        // Generate relative labels anchored to now: "−2h", "−1h", "now"
+        const n = hist.length;
+        labels = hist.map((_, i) => {
+          const hoursAgo = n - 1 - i;
+          return hoursAgo === 0 ? 'now' : `−${hoursAgo}h`;
+        });
+      }
+
+      destroyChart('spark');
+      CH['spark'] = new Chart(document.getElementById('c-spark').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            data: hist,
+            borderColor: c.teal,
+            backgroundColor: c.teal + '18',
+            borderWidth: 2,
+            tension: .4,
+            fill: true,
+            pointRadius: 3,
+            pointBackgroundColor: hist.map((v, i) => i === hist.length - 1 ? c.teal : c.teal + '88'),
+            pointBorderColor: 'transparent'
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { display: false },
+            tooltip: { ...ttBase, callbacks: { label: x => `${x.raw} batches/hr` } }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: c.muted, font: { size: 9 }, maxRotation: 0 }
+            },
+            y: {
+              grid: { color: c.border, lineWidth: .5 },
+              ticks: { color: c.muted, font: { size: 9 } },
+              beginAtZero: true
+            }
+          },
+          animation: { duration: 600 }
+        }
+      });
+    }
+
+    function renderStepLoad() {
+      const c = gc();
+      const active = D.steps.filter(s => s.active > 0);
+      const totalActive = active.reduce((a, s) => a + s.active, 0) || 1;
+
+      destroyChart('load');
+
+      const container = document.getElementById('c-stepload').parentElement;
+
+      if (!active.length) {
+        document.getElementById('c-stepload').style.display = 'none';
+        return;
+      }
+      document.getElementById('c-stepload').style.display = 'block';
+
+      // ── Colour palette ────────────────────────────────────────────────────
+      function botShade(count, max) {
+        const ratio = count / max;
+        if (ratio > 0.6) return c.teal;
+        if (ratio > 0.25) return '#38bdf8';
+        return c.muted;
+      }
+      const botMax = Math.max(...active.filter(s => !STEPS[s.o].h && s.o !== BN.o).map(s => s.active), 1);
+
+      // Clean label: just the step name, truncated — color carries the Bot/HITL distinction
+      const buildLabel = (s) => {
+        const name = STEPS[s.o].n;
+        const maxLen = 26;
+        return [name.length > maxLen ? name.slice(0, maxLen - 1) + '…' : name];
+      };
+
+      const labels = active.map(s => buildLabel(s));
+      const vals = active.map(s => s.active);
+      const colors = active.map(s => {
+        if (s.o === BN.o) return c.amber;
+        if (STEPS[s.o].h) return c.purple;
+        return botShade(s.active, botMax);
+      });
+
+      // Dynamic height: 38px per bar, capped so it stays within card
+      const barHeight = 38;
+      const chartHeight = Math.max(160, Math.min(active.length * barHeight, 200));
+      container.style.height = chartHeight + 'px';
+
+      // Plugin: draw count + type badge after each bar
+      const countLabelPlugin = {
+        id: 'countLabel',
+        afterDatasetsDraw(chart) {
+          const { ctx, scales: { x } } = chart;
+          chart.getDatasetMeta(0).data.forEach((bar, i) => {
+            const s = active[i];
+            const v = vals[i];
+            const col = colors[i];
+            const xPos = x.getPixelForValue(v) + 8;
+            ctx.save();
+            ctx.font = 'bold 11px "Geist Mono",monospace';
+            ctx.fillStyle = col;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${v}`, xPos, bar.y);
+            ctx.restore();
+          });
+        }
+      };
+
+      CH['load'] = new Chart(document.getElementById('c-stepload').getContext('2d'), {
+        type: 'bar',
+        plugins: [countLabelPlugin],
+        data: {
+          labels,
+          datasets: [{
+            data: vals,
+            backgroundColor: colors,
+            borderRadius: 5,
+            borderSkipped: false,
+            barPercentage: 0.55,
+            categoryPercentage: 0.85
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          maintainAspectRatio: false,
+          layout: { padding: { right: 90, top: 6, bottom: 6, left: 4 } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              ...ttBase,
+              callbacks: {
+                title: ctx => STEPS[active[ctx[0].dataIndex].o].n,
+                label: item => {
+                  const s = active[item.dataIndex];
+                  const pct = Math.round(s.active / totalActive * 100);
+                  const type = s.o === BN.o ? '⚠ Bottleneck' : STEPS[s.o].h ? '👤 Human (HITL)' : '🤖 Bot (Auto)';
+                  return [` ${s.active} batches active · ${pct}% of total`, ` ${type}`];
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: c.border, lineWidth: 0.5 },
+              ticks: { color: c.muted, font: { size: 10 }, stepSize: 1, precision: 0 },
+              beginAtZero: true,
+              title: { display: true, text: 'Active Batches', color: c.muted, font: { size: 9 } }
+            },
+            y: {
+              grid: { display: false },
+              ticks: {
+                color: c.text,
+                font: { size: 10.5, weight: '700' },
+                padding: 4,
+              }
+            }
+          },
+          animation: { duration: 600 }
+        }
+      });
+
+      // ── Legend below chart ─────────────────────────────────
+      let legend = document.getElementById('stepload-legend');
+      if (!legend) {
+        legend = document.createElement('div');
+        legend.id = 'stepload-legend';
+        container.parentElement.appendChild(legend);
+      }
+      legend.innerHTML = `<div style="display:flex;align-items:center;gap:14px;padding:8px 0 2px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:${c.purple}"></div><span style="font-size:10px;color:var(--muted)">Human / HITL</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:${c.teal}"></div><span style="font-size:10px;color:var(--muted)">Bot / Auto</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:${c.amber}"></div><span style="font-size:10px;color:var(--muted)">Bottleneck</span></div>
+      </div>`;
+    }
+
+    let tcSortByVariance = false;
+
+    function renderTimeChart() {
+      const c = gc();
+      const base = D.steps.filter(s => s.avg !== null && s.exp > 0);
+
+      // No measured completion timings yet for this workflow scope.
+      // Show a clear empty state instead of rendering a blank chart.
+      if (!base.length) {
+        destroyChart('time');
+        document.getElementById('time-chart-inner').innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:center;height:340px;border:1px dashed var(--border);border-radius:10px;background:var(--surface2);padding:16px;text-align:center">
+            <div>
+              <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px">No timing data yet</div>
+              <div style="font-size:11px;color:var(--muted)">This view is populated after batches are claimed and completed at steps.</div>
+            </div>
+          </div>`;
+        return;
+      }
+
+      // Respect toggle: workflow order (default) OR worst-variance first
+      const data = tcSortByVariance
+        ? base.slice().sort((a, b) => ((b.avg - b.exp) / b.exp) - ((a.avg - a.exp) / a.exp))
+        : base.slice(); // natural step order preserved
+
+      const overCount = data.filter(s => s.avg > s.exp * 1.1).length;
+      const onTrack = data.filter(s => s.avg <= s.exp * 1.1).length;
+      const varianceSorted = base.slice().sort((a, b) => ((b.avg - b.exp) / b.exp) - ((a.avg - a.exp) / a.exp));
+      const worstStep = varianceSorted[0];
+      const worstMeta = STEPS[worstStep.o];
+      const worstPct = Math.round((worstStep.avg - worstStep.exp) / worstStep.exp * 100);
+      const hasOverrun = worstPct > 0;
+
+      destroyChart('time');
+
+      document.getElementById('time-chart-inner').innerHTML = `
+    <!-- Summary stats -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+      <div style="background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:8px;padding:9px 13px">
+        <div style="font-size:20px;font-weight:900;font-family:var(--mono);color:var(--amber);line-height:1">${overCount}</div>
+        <div style="font-size:10px;color:var(--amber);font-weight:600;margin-top:3px">steps over expected</div>
+      </div>
+      <div style="background:var(--green-bg);border:1px solid var(--green-bd);border-radius:8px;padding:9px 13px">
+        <div style="font-size:20px;font-weight:900;font-family:var(--mono);color:var(--green);line-height:1">${onTrack}</div>
+        <div style="font-size:10px;color:var(--green);font-weight:600;margin-top:3px">steps on track</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 13px;min-width:0">
+        <div style="font-size:11px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${worstMeta.n}</div>
+        <div style="font-size:10px;color:${hasOverrun ? 'var(--amber)' : 'var(--green)'};font-weight:600;margin-top:3px">${hasOverrun ? `slowest · +${worstPct}% over` : `all steps on/under expected`}</div>
+      </div>
+    </div>
+    <!-- Legend + sort toggle -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:5px">
+        <div style="width:12px;height:10px;background:var(--green);border-radius:2px;opacity:.8"></div>
+        <span style="font-size:11px;color:var(--muted)">Under / on time</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px">
+        <div style="width:12px;height:10px;background:var(--amber);border-radius:2px"></div>
+        <span style="font-size:11px;color:var(--muted)">Over expected</span>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+        <span style="font-size:10px;color:var(--muted)">View by:</span>
+        <div style="display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:2px;gap:2px">
+          <button id="tc-btn-workflow" onclick="tcSetSort(false)"
+            style="padding:3px 10px;border-radius:5px;border:none;font-size:11px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;background:${!tcSortByVariance ? 'var(--card)' : 'transparent'};color:${!tcSortByVariance ? 'var(--text)' : 'var(--muted)'};box-shadow:${!tcSortByVariance ? 'var(--shadow)' : 'none'}">
+            Workflow order
+          </button>
+          <button id="tc-btn-variance" onclick="tcSetSort(true)"
+            style="padding:3px 10px;border-radius:5px;border:none;font-size:11px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;background:${tcSortByVariance ? 'var(--card)' : 'transparent'};color:${tcSortByVariance ? 'var(--text)' : 'var(--muted)'};box-shadow:${tcSortByVariance ? 'var(--shadow)' : 'none'}">
+            Worst first
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Fixed-height chart -->
+    <div style="position:relative;height:340px">
+      <canvas id="c-time"></canvas>
+    </div>`;
+
+      // Step number prefix on Y-axis labels only in workflow order -- makes sequence readable
+      const labels = data.map(s => tcSortByVariance
+        ? STEPS[s.o].n
+        : `${String(s.o + 1).padStart(2, '0')}  ${STEPS[s.o].n}`
+      );
+      const deltas = data.map(s => s.avg - s.exp);
+      const barColors = data.map(s => (s.avg - s.exp) > s.exp * 0.1 ? c.amber : c.green);
+
+      const deltaLabelPlugin = {
+        id: 'deltaLabel',
+        afterDatasetsDraw(chart) {
+          const { ctx, scales: { x } } = chart;
+          chart.getDatasetMeta(0).data.forEach((bar, i) => {
+            const delta = deltas[i];
+            const sign = delta >= 0 ? '+' : '';
+            const label = sign + ft(Math.abs(delta));
+            const col = barColors[i];
+            const xPos = delta >= 0 ? x.getPixelForValue(delta) + 5 : x.getPixelForValue(delta) - 5;
+            ctx.save();
+            ctx.font = 'bold 10px "Geist Mono",monospace';
+            ctx.fillStyle = col;
+            ctx.textAlign = delta >= 0 ? 'left' : 'right';
+            ctx.fillText(label, xPos, bar.y + 3.5);
+            ctx.restore();
+          });
+        }
+      };
+
+      CH['time'] = new Chart(document.getElementById('c-time').getContext('2d'), {
+        type: 'bar',
+        plugins: [deltaLabelPlugin],
+        data: {
+          labels, datasets: [{
+            label: 'Variance',
+            data: deltas,
+            backgroundColor: barColors,
+            borderRadius: 3,
+            borderSkipped: false,
+            barPercentage: 0.6,
+            categoryPercentage: 0.85
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          maintainAspectRatio: false,
+          layout: { padding: { right: 60, top: 4, bottom: 4 } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              ...ttBase,
+              callbacks: {
+                title: ctx => STEPS[data[ctx[0].dataIndex].o].n,
+                label: item => {
+                  const s = data[item.dataIndex];
+                  const d = s.avg - s.exp;
+                  const pct = Math.round(d / s.exp * 100);
+                  const sign = pct >= 0 ? '+' : '';
+                  return ` ${sign}${ft(Math.abs(d))} vs expected  (${sign}${pct}%)  ·  Actual: ${ft(s.avg)}, Expected: ${ft(s.exp)}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: c.border, lineWidth: 0.5 },
+              ticks: { color: c.muted, font: { size: 10 }, callback: v => (v >= 0 ? '+' : '') + ft(Math.abs(v)) },
+              title: { display: true, text: 'Time vs expected (seconds)', color: c.muted, font: { size: 10 } }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { color: c.text, font: { size: 11, weight: '600' } }
+            }
+          },
+          animation: { duration: 500 }
+        }
+      });
+    }
+
+    function tcSetSort(byVariance) {
+      tcSortByVariance = byVariance;
+      renderTimeChart();
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  RENDER DOM
+    // ══════════════════════════════════════════════════════════
+    function renderPageHeader() {
+      const titleEl = document.getElementById('page-hdr-left');
+      if (titleEl) {
+        titleEl.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px">
+      ${ic('bar', 18, 'var(--blue)')}
+      <span style="font-size:18px;font-weight:900;color:var(--text);line-height:1.2;overflow-wrap:anywhere">${WORKFLOW_META.description}</span>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:3px">Workflow-level metrics, bottleneck detection, and live pipeline monitoring</div>`;
+      }
+      const pillEl = document.getElementById('hitl-pills') || document.getElementById('hitl-pills-bar');
+      if (pillEl) pillEl.innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--purple-bg);border:1px solid var(--purple-bd);border-radius:8px">
+      ${ic('human', 12, 'var(--purple)')} <span style="font-size:12px;font-weight:700;color:var(--purple)">${N_HITL} HITL steps</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--blue-bg);border:1px solid var(--blue-bd);border-radius:8px">
+      ${ic('bot', 12, 'var(--blue)')} <span style="font-size:12px;font-weight:700;color:var(--blue)">${N_BOT} bot steps</span>
+    </div>`;
+      const vizSub = document.getElementById('viz-sub');
+      if (vizSub) vizSub.textContent = `${STEPS.length} steps · ${N_HITL} human review · ${N_BOT} automated · Click Pipeline tab to inspect each step`;
+    }
+
+    function renderHealth() {
+      const danger = TOT_STALE > 0 || D.failed > 0, warn = VAR > 10 || TOT_UA > 0;
+      const col = danger ? 'var(--red)' : warn ? 'var(--amber)' : 'var(--green)';
+      const lbl = danger ? 'Needs Attention' : warn ? 'Monitor Closely' : 'Running Smoothly';
+      const bg = danger ? 'var(--red-bg)' : warn ? 'var(--amber-bg)' : 'var(--green-bg)';
+      const bd = danger ? 'var(--red-bd)' : warn ? 'var(--amber-bd)' : 'var(--green-bd)';
+      const pill = document.getElementById('health-pill');
+      pill.style.background = bg; pill.style.borderColor = bd;
+      document.getElementById('hdot').style.background = col;
+      document.getElementById('hlabel').style.color = col;
+      document.getElementById('hlabel').textContent = lbl;
+    }
+
+    function renderNotifications() {
+      const ns = [];
+      D.steps.filter(s => s.stale > 0).forEach(s => ns.push({ lv: 'danger', ic: 'clock', t: `${s.stale} overdue at "${STEPS[s.o].n}"`, b: 'Exceeded expected time.', act: 'Check & reassign' }));
+      if (VAR > 10) ns.push({ lv: 'warn', ic: 'trend', t: `Running ${VAR}% slower than planned`, b: `Avg ${ft(D.avg_s)} vs planned ${ft(D.exp_s)}.`, act: null });
+      if (TOT_UA > 0) ns.push({ lv: 'warn', ic: 'user', t: `${TOT_UA} unassigned batches waiting`, b: 'Work available but no member assigned.', act: 'View unassigned' });
+      if (D.failed > 0) ns.push({ lv: 'warn', ic: 'x', t: `${D.failed} failed batches`, b: 'Require manual review or retry.', act: 'Review' });
+
+      const totalCount = ns.length + 1; // +1 for bottleneck
+      const cnt = document.getElementById('n-count');
+      cnt.textContent = totalCount; cnt.classList.toggle('hidden', totalCount === 0);
+      const lcol = { danger: 'red', warn: 'amber', info: 'blue', ok: 'green' };
+
+      const ratio = (BN.avg / BN.exp).toFixed(1);
+      const bnAction = BN_META.h ? 'Assign more reviewers' : 'Check system logs';
+
+      document.getElementById('notif-panel').innerHTML = `
+    <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between;align-items:center">
+      Notifications ${badge('bd-default', totalCount + ' new')}
+      <span style="font-size:10px;font-weight:400;cursor:pointer;color:var(--blue)" onclick="clearNotifs()">Mark all read</span>
+    </div>
+
+    <!-- Pinned bottleneck critical alert -->
+    <div style="margin:10px 12px 4px;background:var(--red-bg);border:1px solid var(--red-bd);border-radius:10px;padding:12px 14px">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <div style="width:30px;height:30px;border-radius:8px;background:var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">
+          ${ic('warn', 14, '#fff')}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+            <span style="font-size:12px;font-weight:800;color:var(--red)">Bottleneck Detected</span>
+            ${badge('bd-red', 'Critical')}
+          </div>
+          <div style="font-size:12px;font-weight:700;color:var(--red);opacity:.9">Step ${BN.o + 1}: ${BN_META.n}</div>
+          <div style="font-size:11px;color:var(--red);opacity:.75;margin-top:3px;line-height:1.5">
+            <strong>${BN.active} batches</strong> queued · Running <strong>${ratio}×</strong> expected time
+          </div>
+          <div style="font-size:11px;color:var(--red);opacity:.65;margin-top:3px">${BN_META.h ? 'Human review step — assign more reviewers or redistribute batches.' : 'Automated step — check system logs for errors or slowdowns.'}</div>
+          <button onclick="toggleNotif();switchTab('table')" style="margin-top:8px;display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--red);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;font-family:var(--font);cursor:pointer">
+            View in Table →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    ${ns.length > 0 ? `<div style="padding:8px 14px 4px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Other alerts</div>` : ''}
+    ${ns.map(n => `
+      <div class="notif-item">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--${lcol[n.lv] || 'blue'}-bg);border:1px solid var(--${lcol[n.lv] || 'blue'}-bd);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          ${ic(n.ic, 13, `var(--${lcol[n.lv] || 'blue'})`)}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:700;color:var(--text)">${n.t}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${n.b}</div>
+          ${n.act ? `<div style="font-size:11px;color:var(--blue);margin-top:3px;font-weight:600">→ ${n.act}</div>` : ''}
+        </div>
+      </div>`).join('')}`;
+    }
+
+    function renderKPIs() {
+      const pct = Math.round(D.completed / D.total * 100);
+      const botAct = D.active - HITL_ACT;
+      const kpis = [
+        { l: 'Total Batches', v: D.total, sub: 'All time', col: 'var(--blue)', ic: 'lay' },
+        { l: 'Completed', v: D.completed, sub: `${pct}% done`, col: 'var(--green)', ic: 'chk', bar: pct },
+        { l: 'Active', v: D.active, sub: `${HITL_ACT} human · ${botAct} bot`, col: 'var(--amber)', ic: 'zap' },
+        { l: 'Failed', v: D.failed, sub: D.failed > 0 ? 'Review needed' : 'None', col: D.failed > 0 ? 'var(--red)' : 'var(--muted)', ic: 'warn' },
+        { l: 'Overdue', v: TOT_STALE, sub: 'Past expected time', col: TOT_STALE > 0 ? 'var(--amber)' : 'var(--muted)', ic: 'clock' },
+        { l: 'Avg Batch Time', v: ft(D.avg_s), sub: `Planned ${ft(D.exp_s)} · ${VAR > 0 ? '+' : ''}${VAR}%`, col: VAR > 20 ? 'var(--amber)' : 'var(--text)', ic: 'trend' },
+        { l: 'Est. Remaining', v: ft(D.remaining_s), sub: `${D.total - D.completed} batches left · ${tphFmt} batches/hr`, col: 'var(--teal)', ic: 'bar' },
+      ];
+      document.getElementById('kpis').innerHTML = kpis.map((k, i) => `
+    <div class="metric-card fade-up" style="animation-delay:${i * 40}ms">
+      <div class="metric-label">${k.l} ${ic(k.ic, 13, k.col)}</div>
+      <div class="metric-value" style="color:${k.col}">${k.v}</div>
+      ${k.bar !== undefined ? `<div class="metric-bar"><div class="metric-bar-fill" style="width:${k.bar}%;background:${k.col}"></div></div>` : ''}
+      <div class="metric-sub">${k.sub}</div>
+    </div>`).join('');
+    }
+
+    function renderUnassigned() {
+      // Only HITL steps can be claimed by a person — bot steps run automatically
+      const ua = D.steps.filter(s => s.unassigned > 0 && STEPS[s.o].h);
+      const hitlUA = ua.reduce((a, s) => a + s.unassigned, 0);
+      document.getElementById('ua-badge').textContent = `${hitlUA} batches`;
+
+      if (!ua.length) {
+        document.getElementById('ua-list').innerHTML = `
+      <div style="padding:32px 20px;text-align:center;color:var(--muted)">
+        ${ic('chk', 28, 'var(--green)')}
+        <div style="font-size:12px;font-weight:600;margin-top:8px;color:var(--green)">All caught up</div>
+        <div style="font-size:11px;margin-top:3px">Every step has someone assigned</div>
+      </div>`;
+        return;
+      }
+      // Sort: past-due first, then by count desc
+      const sorted = [...ua].sort((a, b) => (b.stale - a.stale) || (b.unassigned - a.unassigned));
+      document.getElementById('ua-list').innerHTML = `<div style="padding:10px 12px;display:flex;flex-direction:column;gap:6px">
+    ${sorted.map(s => {
+        const meta = STEPS[s.o];
+        const pastDue = s.stale > 0;
+        // Neutral blue by default; only escalate to amber when past-due
+        const accentCol = pastDue ? 'var(--amber)' : 'var(--blue)';
+        const bgCol = pastDue ? 'var(--amber-bg)' : 'var(--blue-bg)';
+        const bdCol = pastDue ? 'var(--amber-bd)' : 'var(--blue-bd)';
+        const stepNumBg = pastDue ? 'var(--amber)' : 'var(--blue)';
+        return `<div style="display:flex;border:1px solid ${bdCol};border-radius:9px;background:${bgCol};overflow:hidden">
+        <div style="width:3px;background:${accentCol};flex-shrink:0"></div>
+        <div style="flex:1;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <!-- Left: step info -->
+          <div style="display:flex;align-items:center;gap:9px;min-width:0">
+            <div style="width:24px;height:24px;border-radius:6px;background:${stepNumBg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <span style="font-family:var(--mono);font-size:10px;font-weight:800;color:#fff">${meta.o + 1}</span>
+            </div>
+            <div style="min-width:0">
+              <div style="font-size:12px;font-weight:700;color:var(--text);white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.3;max-height:2.6em;overflow:hidden">${meta.n}</div>
+              <div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap">
+                ${badge(meta.h ? 'bd-purple' : 'bd-default', meta.h ? ic('human', 8, 'var(--purple)') + ' Human' : ic('bot', 8, 'var(--muted)') + ' Bot')}
+                ${pastDue ? `<span style="font-size:10px;color:var(--amber);font-weight:600">${ic('clock', 10, 'var(--amber)')} ${s.stale} job${s.stale > 1 ? 's' : ''} past due — reassign promptly</span>` : ''}
+              </div>
+            </div>
+          </div>
+          <!-- Right: count + label -->
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:22px;font-weight:900;font-family:var(--mono);color:${accentCol};line-height:1">${s.unassigned}</div>
+            <div style="font-size:9px;font-weight:700;color:${accentCol};text-transform:uppercase;letter-spacing:.05em;margin-top:2px;opacity:.8">awaiting reviewer</div>
+          </div>
+        </div>
+      </div>`;
+      }).join('')}
+  </div>`;
+    }
+
+    function renderTable() {
+      const bnO = BN.o;
+      document.getElementById('steps-tbl').innerHTML = `<table>
+    <thead><tr>${['#', 'Step Name', 'Type', 'In Progress', 'Completed', 'Avg Time', 'Expected', 'Progress', 'Status'].map(h => `<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${D.steps.map(s => {
+        const m = STEPS[s.o], isBN = s.o === bnO && s.active > 0, slow = s.avg && s.avg > s.exp * 1.1;
+        const pct = D.total > 0 ? Math.round(s.done / D.total * 100) : 0;
+        const sb = isBN ? badge('bd-red', '⚠ Bottleneck') : s.stale > 0 ? badge('bd-amber', `${s.stale} overdue`) :
+          s.done >= D.total && D.total > 0 ? badge('bd-green', '✓ Complete') :
+            s.active > 0 && slow ? badge('bd-amber', 'Slow') :
+              s.active > 0 ? badge('bd-blue', 'Active') :
+                s.done === 0 ? badge('bd-default', 'Pending') : '';
+        return `<tr style="${isBN ? 'background:var(--amber-bg)' : ''}">
+        <td><span style="font-family:var(--mono);font-size:11px;color:var(--muted)">${s.o + 1}</span></td>
+        <td><span style="font-size:13px;font-weight:700;color:var(--text)">${m.n}</span></td>
+        <td>${badge(m.h ? 'bd-purple' : 'bd-default', m.h ? ic('human', 9, 'var(--purple)') + ' Human' : ic('bot', 9, 'var(--muted)') + ' Bot')}</td>
+        <td><div style="display:flex;align-items:center;gap:8px">
+          <div class="prog" style="width:48px"><div class="prog-fill" style="width:${D.total > 0 ? Math.round(s.active / D.total * 100) : 0}%;background:${isBN ? 'var(--amber)' : 'var(--blue)'}"></div></div>
+          <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:${isBN ? 'var(--amber)' : 'var(--text)'}">${s.active}</span>
+        </div></td>
+        <td><span style="font-family:var(--mono);font-size:12px;color:var(--text2)">${s.done}</span></td>
+        <td><span style="font-family:var(--mono);font-size:12px;color:${slow ? 'var(--amber)' : 'var(--text2)'};font-weight:${slow ? 700 : 400}">${ft(s.avg)}</span></td>
+        <td><span style="font-family:var(--mono);font-size:12px;color:var(--muted)">${ft(s.exp)}</span></td>
+        <td><div style="display:flex;align-items:center;gap:8px;min-width:110px">
+          <div class="prog" style="flex:1"><div class="prog-fill" style="width:${pct}%;background:var(--blue)"></div></div>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">${pct}%</span>
+        </div></td>
+        <td>${sb}</td>
+      </tr>`;
+      }).join('')}</tbody></table>`;
+    }
+
+    let selPipe = BN.o;
+    function renderPipeline() {
+      document.getElementById('pipe-list').innerHTML = `<div class="pipe-list">${D.steps.map((s, i) => {
+        const m = STEPS[s.o], isBN = s.o === BN.o && s.active > 0;
+        const isDone = s.done >= D.total && D.total > 0, isActive = s.active > 0;
+        const cc = isDone ? 'done' : isBN ? 'warn' : isActive ? 'active' : '';
+        const lc = isDone ? 'done' : '';
+        return `<div class="pipe-item" onclick="selPipeStep(${s.o})">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="pipe-circle ${cc}">${isDone ? ic('chk', 11, '#fff') : s.o + 1}</div>
+        ${i < D.steps.length - 1 ? `<div class="pipe-line ${lc}"></div>` : ''}
+      </div>
+      <div class="pipe-content${selPipe === s.o ? ' sel' : ''}" id="pc-${s.o}">
+        <div style="font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span class="text-wrap" style="flex:1;min-width:0">${m.n}</span>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">
+            ${isBN ? badge('bd-red', '⚠ Bottleneck') : ''}
+            ${m.h ? badge('bd-purple', 'Human') : ''}
+            ${isDone ? badge('bd-green', '✓ Done') : ''}
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px;display:flex;gap:10px">
+          <span>${ic('chk', 9, 'var(--green)')} ${s.done}</span>
+          ${s.active > 0 ? `<span style="color:var(--amber)">● ${s.active} active</span>` : ''}
+          ${s.avg ? `<span>${ft(s.avg)} avg</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+      }).join('')}</div>`;
+      renderPipeDetail(selPipe);
+    }
+
+    function selPipeStep(o) {
+      selPipe = o;
+      document.querySelectorAll('[id^="pc-"]').forEach(el => el.classList.toggle('sel', el.id === `pc-${o}`));
+      renderPipeDetail(o);
+    }
+
+    function renderPipeDetail(o) {
+      const s = D.steps[o], m = STEPS[o];
+      if (!s || !m) return;
+      const pct = D.total > 0 ? Math.round(s.done / D.total * 100) : 0, slow = s.avg && s.avg > s.exp * 1.1;
+      document.getElementById('pipe-detail').innerHTML = `<div class="slide-in">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="width:34px;height:34px;border-radius:9px;background:var(--${m.h ? 'purple' : 'blue'}-bg);border:1px solid var(--${m.h ? 'purple' : 'blue'}-bd);display:flex;align-items:center;justify-content:center">
+        ${ic(m.h ? 'human' : 'bot', 16, 'var(--' + (m.h ? 'purple' : 'blue') + ')')}
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:800;color:var(--text);line-height:1.3;overflow-wrap:anywhere">${m.n}</div>
+        <div style="display:flex;gap:5px;margin-top:3px">
+          ${badge('bd-default', 'Step ' + (o + 1))}
+          ${badge(m.h ? 'bd-purple' : 'bd-default', m.h ? 'Human' : 'Bot')}
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+      ${[['Done', s.done, 'var(--green)'], ['Active', s.active, 'var(--amber)'], ['%', pct + '%', 'var(--blue)']].map(([l, v, c]) => `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px;text-align:center">
+          <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">${l}</div>
+          <div style="font-size:18px;font-weight:900;font-family:var(--mono);color:${c}">${v}</div>
+        </div>`).join('')}
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:12px 13px;margin-bottom:8px">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Timing</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+        <span style="font-size:12px;color:var(--text2)">Avg</span>
+        <span style="font-size:12px;font-family:var(--mono);font-weight:700;color:${slow ? 'var(--amber)' : 'var(--green)'}">${ft(s.avg)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+        <span style="font-size:12px;color:var(--text2)">Expected</span>
+        <span style="font-size:12px;font-family:var(--mono);color:var(--muted)">${ft(s.exp)}</span>
+      </div>
+      ${s.exp > 0 ? `<div class="prog"><div class="prog-fill" style="width:${Math.min(100, Math.round((s.avg || 0) / s.exp * 100))}%;background:${slow ? 'var(--amber)' : 'var(--green)'}"></div></div>
+      <div style="font-size:10px;color:var(--muted);text-align:right;margin-top:3px">${s.avg ? Math.round(s.avg / s.exp * 100) + '% of expected' : '—'}</div>` : ''}
+    </div>
+    ${s.stale > 0 ? `<div style="padding:9px 12px;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:9px"><div style="font-size:12px;font-weight:700;color:var(--amber)">${s.stale} job${s.stale > 1 ? 's' : ''} overdue</div><div style="font-size:11px;color:var(--amber);opacity:.75;margin-top:1px">Claimed beyond 2× expected time</div></div>` : ''}
+  </div>`;
+    }
+
+    function renderFunnel() {
+      const maxD = Math.max(...D.steps.map(s => s.done), 1), maxA = Math.max(...D.steps.map(s => s.active), 1);
+      document.getElementById('tv-funnel').innerHTML = `
+    <div style="display:flex;gap:16px;margin-bottom:14px;font-size:11px;color:var(--muted);flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:6px;background:var(--blue);border-radius:99px"></div>Completed</div>
+      <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:6px;background:var(--amber);border-radius:99px"></div>In step now</div>
+    </div>
+    ${D.steps.map(s => {
+        const m = STEPS[s.o], isBN = s.o === BN.o && s.active > 0;
+        return `<div class="funnel-row" style="${isBN ? 'background:var(--amber-bg);border-color:var(--amber-bd);' : ''}">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap">
+            <span style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;flex-shrink:0">${s.o + 1}</span>
+            <span class="text-wrap" style="flex:1;min-width:0">${m.n}</span>
+            <div style="display:flex;gap:4px;flex-wrap:wrap">
+              ${isBN ? badge('bd-red', '⚠') : ''}
+              ${m.h ? badge('bd-purple', 'Human') : ''}
+            </div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${s.done} done · ${s.active} active</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="funnel-track"><div style="height:100%;border-radius:99px;background:var(--blue);width:${Math.round(s.done / maxD * 100)}%;transition:width .6s"></div></div>
+            <span style="font-size:10px;font-family:var(--mono);color:var(--muted);min-width:26px;text-align:right">${s.done}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="funnel-track"><div style="height:100%;border-radius:99px;background:${isBN ? 'var(--amber)' : 'var(--amber)'};opacity:${isBN ? 1 : .7};width:${Math.round(s.active / maxA * 100)}%;transition:width .6s"></div></div>
+            <span style="font-size:10px;font-family:var(--mono);color:var(--muted);min-width:26px;text-align:right">${s.active}</span>
+          </div>
+        </div>
+      </div>`;
+      }).join('')}`;
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  FLOW DIAGRAM
+    // ══════════════════════════════════════════════════════════
+    function renderFlowDiagram() {
+      const dk = document.documentElement.getAttribute('data-theme') !== 'light';
+      const c = gc();
+
+      // ── Status helpers ───────────────────────────────────────────────────────
+      function stepData(id) { return D.steps.find(s => s.o === id) || { active: 0, done: 0, stale: 0, avg: null, exp: 0 }; }
+      function nodeStatus(id) {
+        const s = stepData(id), isBN = id === BN.o && s.active > 0;
+        if (isBN) return 'bn';
+        if (s.stale > 0) return 'warn';
+        if (s.done >= D.total && D.total > 0) return 'done';
+        if (s.active > 0) return 'active';
+        return 'idle';
+      }
+      const SC = {
+        bn: { border: '#d97706', bg: dk ? '#292010' : '#fffbeb', label: dk ? '#fbbf24' : '#d97706' },
+        warn: { border: '#ea580c', bg: dk ? '#2a1206' : '#fff7ed', label: dk ? '#fb923c' : '#ea580c' },
+        done: { border: '#16a34a', bg: dk ? '#052e16' : '#f0fdf4', label: dk ? '#4ade80' : '#16a34a' },
+        active: { border: '#2563eb', bg: dk ? '#1e3a5f' : '#eff6ff', label: dk ? '#60a5fa' : '#2563eb' },
+        idle: { border: dk ? '#334155' : '#cbd5e1', bg: dk ? '#1e2a3a' : '#f8fafc', label: dk ? '#64748b' : '#94a3b8' },
+      };
+
+      // ── Initial positions (preset layout — matches our DAG topology) ─────────
+      // Units are arbitrary Cytoscape coords; we scale for readability
+      const X = 220, Y = 130;
+      const initPos = {
+        0: { x: 0 * X, y: 0 },       // Input
+        1: { x: 1 * X, y: 0 },       // PDF Finder
+        2: { x: 2 * X, y: 0 },       // Splitter
+        3: { x: 3 * X, y: -Y },      // Template Profiler (upper)
+        4: { x: 3 * X, y: Y },       // Image Enhancer (lower)
+        5: { x: 4 * X, y: Y },       // PDF Searchable
+        6: { x: 5.5 * X, y: 0 },       // PDF→JSON
+        7: { x: 5 * X, y: Y },       // Output Router
+        8: { x: 7 * X, y: 0 },       // Field Mapper
+        9: { x: 8 * X, y: 0 },       // GPT Validator
+        10: { x: 9 * X, y: 0 },       // Compliance Normalizer
+        11: { x: 10 * X, y: 0 },       // Compliance Checker
+        12: { x: 11 * X, y: 0 },       // JSON Uploader
+        13: { x: 12 * X, y: 0 },       // Output
+      };
+
+      // ── Build Cytoscape elements ─────────────────────────────────────────────
+      const nodes = STEPS.map((meta, id) => {
+        const s = stepData(id);
+        const st = nodeStatus(id);
+        const col = SC[st];
+        let sublabel = s.active > 0 ? `${s.active} active` : s.done > 0 ? `${s.done} done` : 'idle';
+        return {
+          group: 'nodes',
+          data: {
+            id: String(id),
+            label: meta.n,
+            sublabel,
+            stepNum: String(id + 1).padStart(2, '0'),
+            status: st,
+            borderCol: col.border,
+            bgCol: col.bg,
+            labelCol: col.label,
+            isHuman: meta.h,
+            isBN: st === 'bn',
+          },
+          position: initPos[id]
+        };
+      });
+
+      const edges = [
+        { s: 0, d: 1 }, { s: 1, d: 2 },
+        { s: 2, d: 3 }, { s: 2, d: 4 }, { s: 2, d: 6 },
+        { s: 3, d: 8 },
+        { s: 4, d: 5 }, { s: 5, d: 7 }, { s: 7, d: 6 },
+        { s: 6, d: 8 },
+        { s: 8, d: 9 }, { s: 9, d: 10 }, { s: 10, d: 11 }, { s: 11, d: 12 }, { s: 12, d: 13 },
+      ].map(e => ({
+        group: 'edges',
+        data: {
+          id: `e${e.s}-${e.d}`,
+          source: String(e.s),
+          target: String(e.d),
+          isBNEdge: (e.s === BN.o || e.d === BN.o) && stepData(BN.o).active > 0,
+        }
+      }));
+
+      // ── Destroy existing instance if re-rendering ────────────────────────────
+      if (window._cy) { window._cy.destroy(); window._cy = null; }
+
+      // ── Initialise Cytoscape ─────────────────────────────────────────────────
+      window._cy = cytoscape({
+        container: document.getElementById('cy'),
+        elements: [...nodes, ...edges],
+        layout: { name: 'preset' },
+        style: [
+          // ── Nodes base ─────────────────────────────────────────────────────
+          {
+            selector: 'node',
+            style: {
+              'shape': 'round-rectangle',
+              'width': 160, 'height': 64,
+              'background-color': 'data(bgCol)',
+              'border-color': 'data(borderCol)',
+              'border-width': 2,
+              'label': '',                        // no built-in label; we use HTML overlay
+              'transition-property': 'border-width, background-color',
+              'transition-duration': '0.15s',
+            }
+          },
+          // ── HITL nodes: dashed border + slightly taller to differentiate ──
+          {
+            selector: 'node[?isHuman]',
+            style: {
+              'border-style': 'dashed',
+              'border-width': 2.5,
+              'height': 70,
+            }
+          },
+          {
+            selector: 'node[isBN = "true"]',
+            style: { 'border-width': 3.5, 'border-style': 'solid' }
+          },
+          {
+            selector: 'node:selected',
+            style: { 'border-width': 3, 'border-color': 'data(borderCol)', 'overlay-opacity': 0.08 }
+          },
+          {
+            selector: 'node:active',
+            style: { 'overlay-opacity': 0.1 }
+          },
+          // ── Edges ──────────────────────────────────────────────────────────
+          {
+            selector: 'edge',
+            style: {
+              'curve-style': 'bezier',
+              'target-arrow-shape': 'triangle',
+              'target-arrow-color': dk ? '#475569' : '#94a3b8',
+              'line-color': dk ? '#334155' : '#cbd5e1',
+              'width': 1.5,
+              'arrow-scale': 0.9,
+            }
+          },
+          {
+            selector: 'edge[?isBNEdge]',
+            style: {
+              'line-color': '#d97706',
+              'target-arrow-color': '#d97706',
+              'width': 2.5,
+            }
+          },
+        ],
+        wheelSensitivity: 0.3,
+        minZoom: 0.25,
+        maxZoom: 2.5,
+        userZoomingEnabled: true,
+        userPanningEnabled: true,
+        boxSelectionEnabled: false,
+        selectionType: 'single',
+      });
+
+      // ── Custom node label overlay (step name + sublabel) ────────────────────
+      // Cytoscape can't render two lines natively in the free version,
+      // so we draw an HTML layer synced to node positions after each render.
+      function drawLabels() {
+        let overlay = document.getElementById('cy-labels');
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.id = 'cy-labels';
+          overlay.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden';
+          document.getElementById('cy').appendChild(overlay);
+        }
+        const zoom = window._cy.zoom();
+        const sz = Math.max(9, Math.round(13 * zoom));
+
+        // Minimal SVG icons
+        const botIcon  = (col) => `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="11"/><line x1="8" y1="15" x2="8" y2="17"/><line x1="16" y1="15" x2="16" y2="17"/></svg>`;
+        const humanIcon = (col) => `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`;
+
+        overlay.innerHTML = window._cy.nodes().map(node => {
+          const pos = node.renderedPosition();
+          const d = node.data();
+          const w = 160 * zoom, h = 64 * zoom;
+          const x = pos.x - w / 2, y = pos.y - h / 2;
+          const pad = Math.round(10 * zoom);
+          const fs1 = Math.max(9, Math.round(11.5 * zoom));
+          const fs2 = Math.max(7, Math.round(9 * zoom));
+
+          const typeIcon = d.isHuman ? humanIcon('#7c3aed') : botIcon('#0891b2');
+          const typeCol  = d.isHuman ? '#7c3aed' : '#0891b2';
+
+          // Status: only show if notable — bottleneck, done, or stale
+          const statusDot = d.isBN
+            ? `<span style="font-size:${fs2}px;font-weight:700;color:#d97706;letter-spacing:-.01em">⚠ Bottleneck</span>`
+            : d.status === 'done'
+            ? `<span style="font-size:${fs2}px;color:#16a34a;font-weight:600">✓ Done</span>`
+            : d.status === 'warn'
+            ? `<span style="font-size:${fs2}px;color:#ea580c;font-weight:600">⚡ Stale</span>`
+            : '';
+
+          return `<div style="
+            position:absolute;left:${x}px;top:${y}px;
+            width:${w}px;height:${h}px;
+            display:flex;flex-direction:column;justify-content:center;
+            padding:0 ${pad}px;box-sizing:border-box;gap:${Math.round(3*zoom)}px;
+          ">
+            <div style="display:flex;align-items:flex-start;gap:${Math.round(5*zoom)}px">
+              <span style="flex-shrink:0;opacity:.85;margin-top:${Math.round(1*zoom)}px">${typeIcon}</span>
+              <span style="
+                font-size:${fs1}px;font-weight:700;color:${d.labelCol};
+                display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+                overflow:hidden;line-height:1.25;flex:1;
+              ">${d.label}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:${Math.round(6*zoom)}px;padding-left:${Math.round((sz+5)*zoom)}px">
+              <span style="font-size:${fs2}px;color:${d.labelCol};opacity:.7;font-variant-numeric:tabular-nums">${d.sublabel}</span>
+              ${statusDot}
+            </div>
+          </div>`;
+        }).join('');
+      }
+
+      window._cy.on('render', drawLabels);
+      window._cy.on('pan zoom', drawLabels);
+      setTimeout(() => {
+        // Fixed initial zoom — readable node size without needing to zoom in.
+        // 0.72 shows roughly 5–6 nodes at comfortable card size.
+        // User can scroll to zoom or click Fit to see everything.
+        window._cy.zoom({ level: 0.72, renderedPosition: { x: 0, y: 0 } });
+        window._cy.center();           // center the whole graph at this zoom
+        // Then pan left slightly so the flow reads left-to-right from near the left edge
+        const pan = window._cy.pan();
+        window._cy.pan({ x: 40, y: pan.y });
+        drawLabels();
+      }, 80);
+
+      // ── Node click → HITL modal (human steps) or tooltip (bot steps) ────────
+      const tip = document.getElementById('flow-tip');
+      window._cy.on('tap', 'node', function (e) {
+        const id = parseInt(e.target.id());
+        const s = stepData(id);
+        const meta = STEPS[id];
+        const st = nodeStatus(id);
+        const col = SC[st];
+
+        // HITL / human-review nodes → open job iframe modal
+        if (meta.h) {
+          tip.style.display = 'none';
+          openHitlModal(meta.n);
+          return;
+        }
+
+        // Bot nodes → show stats tooltip
+        const slow = s.avg && s.avg > s.exp * 1.1;
+        tip.style.display = 'block';
+        tip.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="width:8px;height:8px;border-radius:50%;background:${col.border};flex-shrink:0"></div>
+        <div style="font-size:13px;font-weight:800;color:var(--text)">${meta.n}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px">
+        <div><span style="color:var(--muted)">Active</span><br><b style="color:var(--text)">${s.active}</b></div>
+        <div><span style="color:var(--muted)">Done</span><br><b style="color:var(--text)">${s.done}</b></div>
+        <div><span style="color:var(--muted)">Stale</span><br><b style="color:${s.stale > 0 ? 'var(--amber)' : 'var(--text)'}">${s.stale}</b></div>
+        <div><span style="color:var(--muted)">Type</span><br><b style="color:var(--muted)">Bot</b></div>
+        <div><span style="color:var(--muted)">Avg time</span><br><b style="color:${slow ? 'var(--amber)' : 'var(--text)'}">${ft(s.avg)}</b></div>
+        <div><span style="color:var(--muted)">Expected</span><br><b style="color:var(--text)">${ft(s.exp)}</b></div>
+      </div>
+      <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:10px;color:var(--muted)">
+        Double-click to inspect in Pipeline tab
+      </div>`;
+
+        // Position tooltip near the node
+        const rp = e.target.renderedPosition();
+        const cyRect = document.getElementById('cy').getBoundingClientRect();
+        tip.style.left = (rp.x + 90) + 'px';
+        tip.style.top = (rp.y - 20) + 'px';
+      });
+
+      // Double-click → open pipeline detail
+      window._cy.on('dblclick dbltap', 'node', function (e) {
+        const id = parseInt(e.target.id());
+        tip.style.display = 'none';
+        switchTab('pipeline');
+        setTimeout(() => selPipeStep(id), 50);
+      });
+
+      // Click background → hide tooltip
+      window._cy.on('tap', function (e) {
+        if (e.target === window._cy) tip.style.display = 'none';
+      });
+
+      // ── Legend ───────────────────────────────────────────────────────────────
+      document.getElementById('flow-legend').innerHTML = `
+        <div style="display:flex;align-items:center;gap:5px"><div style="width:9px;height:9px;border-radius:50%;background:#2563eb"></div><span style="font-size:10px;color:var(--muted)">Active</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><div style="width:9px;height:9px;border-radius:50%;background:#16a34a"></div><span style="font-size:10px;color:var(--muted)">Done</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><div style="width:9px;height:9px;border-radius:50%;background:#d97706"></div><span style="font-size:10px;color:var(--muted)">Bottleneck</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><div style="width:9px;height:9px;border-radius:50%;background:#ea580c"></div><span style="font-size:10px;color:var(--muted)">Stale</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><div style="width:9px;height:9px;border-radius:50%;background:${dk ? '#334155' : '#cbd5e1'}"></div><span style="font-size:10px;color:var(--muted)">Idle</span></div>
+        <div style="width:1px;height:14px;background:var(--border);margin:0 2px"></div>
+        <div style="display:flex;align-items:center;gap:5px">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <span style="font-size:10px;color:var(--muted)">HITL</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="11"/></svg>
+          <span style="font-size:10px;color:var(--muted)">Bot</span>
+        </div>`;
+    }
+
+    function flowFit() { if (window._cy) window._cy.fit(undefined, 40); }
+    function flowReset() {
+      if (!window._cy) return;
+      const X = 220, Y = 130;
+      const pos = { 0: { x: 0, y: 0 }, 1: { x: 220, y: 0 }, 2: { x: 440, y: 0 }, 3: { x: 660, y: -130 }, 4: { x: 660, y: 130 }, 5: { x: 880, y: 130 }, 6: { x: 1210, y: 0 }, 7: { x: 1100, y: 130 }, 8: { x: 1540, y: 0 }, 9: { x: 1760, y: 0 }, 10: { x: 1980, y: 0 }, 11: { x: 2200, y: 0 }, 12: { x: 2420, y: 0 }, 13: { x: 2640, y: 0 } };
+      window._cy.nodes().forEach(n => { const p = pos[parseInt(n.id())]; if (p) n.position(p); });
+      // After reset, restore the same comfortable default zoom
+      setTimeout(() => {
+        window._cy.zoom({ level: 0.72 });
+        window._cy.center();
+        const pan = window._cy.pan();
+        window._cy.pan({ x: 40, y: pan.y });
+      }, 50);
+    }
+
+
+
+    // ══════════════════════════════════════════════════════════
+    //  LENS SWITCHER
+    // ══════════════════════════════════════════════════════════
+    let curLens = 'ops';
+    function switchLens(lens) {
+      curLens = lens;
+      document.getElementById('lens-ops').classList.toggle('hidden', lens !== 'ops');
+      document.getElementById('lens-insights').classList.toggle('hidden', lens !== 'insights');
+      // Update sidebar active states
+      document.getElementById('sb-overview').classList.toggle('active', lens === 'ops');
+      document.getElementById('sb-insights').classList.toggle('active', lens === 'insights');
+      if (lens === 'insights') initInsights();
+    }
+
+    // Hide lens toggle when switching to Member view
+
+
+    // ══════════════════════════════════════════════════════════
+    //  WIDGET SHELL LIBRARY
+    //  Each shell: renderShell_TYPE(spec, containerEl)
+    //  spec shape defined in WIDGET_SPEC schema (see concept doc)
+    // ══════════════════════════════════════════════════════════
+
+    // ── Unified semantic palette (always resolved via gc()) ─────
+    // Green = good/pass, Amber = warn, Red = fail, Blue = neutral data
+    // All widget shells call resolveColors() — never store var(--x) strings
+
+    function resolveColors() {
+      const c = gc();
+      return {
+        pass: c.green,
+        warn: c.amber,
+        fail: c.red,
+        // Neutral data series — consistent across all charts
+        series: [c.blue, c.teal, c.purple],
+        // Status-aware helper
+        forVal(val, thresholds) {
+          if (!thresholds) return c.blue;
+          if (val < thresholds.critical) return c.red;
+          if (val < thresholds.warn) return c.amber;
+          return c.green;
+        },
+        badgeCls(val, thresholds) {
+          if (!thresholds) return 'bd-blue';
+          if (val < thresholds.critical) return 'bd-red';
+          if (val < thresholds.warn) return 'bd-amber';
+          return 'bd-green';
+        },
+        badgeLabel(val, thresholds, unit = '%') {
+          if (!thresholds) return '';
+          if (val < thresholds.critical) return `At risk · below ${thresholds.critical}${unit}`;
+          if (val < thresholds.warn) return `Monitor · below ${thresholds.warn}${unit}`;
+          return 'On track';
+        },
+      };
+    }
+
+    // ── Helper: card wrapper ──────────────────────────────────
+    function makeCard(title, insight, extra = '', accentColor = '') {
+      const card = document.createElement('div');
+      card.className = 'card wi-card-reveal';
+      card.style.cssText = 'display:flex;flex-direction:column;overflow:hidden;height:100%';
+      const accentStyle = accentColor
+        ? `border-top:2.5px solid ${accentColor};`
+        : 'border-top:2.5px solid var(--border2);';
+      card.innerHTML = `
+    <div class="card-hdr" style="padding-bottom:10px;${accentStyle}">
+      <div style="flex:1;min-width:0">
+        <div class="card-title" style="font-size:12px;font-weight:800;letter-spacing:.01em">${title}</div>
+        <div class="card-sub" style="max-width:360px;line-height:1.45;font-size:10.5px;margin-top:3px">${insight}</div>
+      </div>
+      ${extra ? `<div style="flex-shrink:0;margin-left:8px">${extra}</div>` : ''}
+    </div>
+    <div class="wi-body" style="padding:14px 16px 18px;flex:1;display:flex;flex-direction:column;justify-content:center"></div>`;
+      return card;
+    }
+
+    // ── 1. stat_card ──────────────────────────────────────────
+    function renderShell_stat_card(spec, el) {
+      const p = resolveColors();
+      const val = spec.fields.value;
+      const tot = spec.fields.total || null;
+      const col = p.forVal(val, spec.thresholds);
+      const bcl = p.badgeCls(val, spec.thresholds);
+      const blb = p.badgeLabel(val, spec.thresholds, spec.unit || '');
+
+      const card = makeCard(spec.title, spec.insight,
+        blb ? `<span class="badge ${bcl}">${blb}</span>` : '', col);
+      const body = card.querySelector('.wi-body');
+      body.style.justifyContent = 'flex-start';
+      body.innerHTML = `
+    <div style="display:flex;align-items:flex-end;gap:6px;margin-bottom:8px">
+      <span style="font-size:48px;font-weight:900;font-family:var(--mono);color:${col};line-height:1">${val}</span>
+      <span style="font-size:18px;font-weight:700;color:var(--muted);padding-bottom:6px">${spec.unit || ''}</span>
+    </div>
+    ${tot ? `<div style="font-size:11px;color:var(--muted);margin-bottom:10px">${Math.round(val / 100 * tot)} of ${tot} batches passed</div>` : ''}
+    <div style="height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:4px">
+      <div style="height:100%;width:${Math.min(val, 100)}%;background:${col};border-radius:99px;transition:width .6s ease"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)">
+      <span>0</span>
+      ${spec.thresholds ? `<span>warn ${spec.thresholds.warn}${spec.unit || ''}</span>` : ''}
+      <span>100${spec.unit || ''}</span>
+    </div>`;
+      el.appendChild(card);
+    }
+
+    // ── 2. donut_2 ────────────────────────────────────────────
+    function renderShell_donut_2(spec, el) {
+      const p = resolveColors();
+      const keys = Object.keys(spec.fields);
+      const vals = keys.map(k => spec.fields[k]);
+      const total = vals.reduce((a, b) => a + b, 0);
+      const pct = total > 0 ? Math.round(vals[0] / total * 100) : 0;
+      // First segment = pass (green), second = fail (red) — semantic and consistent
+      const colors = [p.pass, p.fail];
+      const col = p.forVal(pct, spec.thresholds);
+      const bcl = p.badgeCls(pct, spec.thresholds);
+      const blb = p.badgeLabel(pct, spec.thresholds, spec.unit || '');
+      const cid = 'wic_' + Math.random().toString(36).slice(2, 7);
+
+      const card = makeCard(spec.title, spec.insight,
+        blb ? `<span class="badge ${bcl}">${blb}</span>` : '', col);
+      const body = card.querySelector('.wi-body');
+      body.innerHTML = `
+    <div style="display:flex;align-items:center;gap:20px">
+      <div style="position:relative;width:96px;height:96px;flex-shrink:0">
+        <canvas id="${cid}" width="96" height="96"></canvas>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+          <span style="font-size:20px;font-weight:900;font-family:var(--mono);color:${col};line-height:1">${pct}%</span>
+          <span style="font-size:9px;color:var(--muted);margin-top:2px">${keys[0]}</span>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:9px">
+        ${keys.map((k, i) => `
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+            <div style="display:flex;align-items:center;gap:5px">
+              <div style="width:8px;height:8px;border-radius:2px;background:${colors[i]}"></div>
+              <span style="font-size:11px;color:var(--text2);font-weight:600">${k}</span>
+            </div>
+            <span style="font-size:13px;font-weight:800;font-family:var(--mono);color:var(--text)">${vals[i]}<span style="font-size:10px;font-weight:400;color:var(--muted);margin-left:2px">${spec.unit || ''}</span></span>
+          </div>
+          <div style="height:3px;background:var(--surface2);border-radius:99px">
+            <div style="height:100%;width:${total ? Math.round(vals[i] / total * 100) : 0}%;background:${colors[i]};border-radius:99px;transition:width .6s ease"></div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+      el.appendChild(card);
+
+      requestAnimationFrame(() => {
+        const ctx = document.getElementById(cid);
+        if (!ctx) return;
+        new Chart(ctx.getContext('2d'), {
+          type: 'doughnut',
+          data: { datasets: [{ data: vals, backgroundColor: colors, borderWidth: 0, hoverOffset: 3 }] },
+          options: { cutout: '72%', plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { duration: 700 } }
+        });
+      });
+    }
+
+    // ── 3. donut_3 ────────────────────────────────────────────
+    function renderShell_donut_3(spec, el) {
+      const p = resolveColors();
+      const keys = Object.keys(spec.fields);
+      const vals = keys.map(k => spec.fields[k]);
+      const total = vals.reduce((a, b) => a + b, 0);
+      // Neutral data series — no pass/fail semantics, use the data series palette
+      const colors = p.series;
+      const cid = 'wic_' + Math.random().toString(36).slice(2, 7);
+
+      const card = makeCard(spec.title, spec.insight);
+      const body = card.querySelector('.wi-body');
+      body.innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="position:relative;width:96px;height:96px;flex-shrink:0">
+        <canvas id="${cid}" width="96" height="96"></canvas>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+          <span style="font-size:16px;font-weight:900;font-family:var(--mono);color:var(--text);line-height:1">${total}</span>
+          <span style="font-size:9px;color:var(--muted);margin-top:1px">${spec.unit || 'total'}</span>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+        ${keys.map((k, i) => `
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:5px">
+            <div style="width:8px;height:8px;border-radius:2px;background:${colors[i]}"></div>
+            <span style="font-size:11px;color:var(--text2);font-weight:600">${k}</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:3px">
+            <span style="font-size:14px;font-weight:800;font-family:var(--mono);color:var(--text)">${vals[i]}</span>
+            <span style="font-size:10px;color:var(--muted)">${total ? Math.round(vals[i] / total * 100) : 0}%</span>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+      el.appendChild(card);
+
+      requestAnimationFrame(() => {
+        const ctx = document.getElementById(cid);
+        if (!ctx) return;
+        new Chart(ctx.getContext('2d'), {
+          type: 'doughnut',
+          data: { datasets: [{ data: vals, backgroundColor: colors, borderWidth: 0, hoverOffset: 3 }] },
+          options: { cutout: '68%', plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { duration: 700 } }
+        });
+      });
+    }
+
+    // ── 4. split_bar ─────────────────────────────────────────
+    function renderShell_split_bar(spec, el) {
+      const p = resolveColors();
+      const keys = Object.keys(spec.fields);
+      const vals = keys.map(k => spec.fields[k]);
+      const total = vals.reduce((a, b) => a + b, 0);
+      const colors = p.series;
+
+      const card = makeCard(spec.title, spec.insight);
+      const body = card.querySelector('.wi-body');
+      body.innerHTML = `
+    <div style="height:24px;border-radius:7px;overflow:hidden;display:flex;margin-bottom:14px">
+      ${keys.map((k, i) => `
+      <div style="height:100%;flex:${vals[i]};background:${colors[i]};
+        min-width:4px;transition:flex .6s ease"
+        title="${k}: ${vals[i]} ${spec.unit || ''}"></div>`).join('')}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${keys.map((k, i) => `
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+          <div style="display:flex;align-items:center;gap:5px">
+            <div style="width:8px;height:8px;border-radius:2px;background:${colors[i]}"></div>
+            <span style="font-size:11px;font-weight:600;color:var(--text2)">${k}</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:3px">
+            <span style="font-size:14px;font-weight:800;font-family:var(--mono);color:var(--text)">${vals[i]}</span>
+            <span style="font-size:10px;color:var(--muted)">${total ? Math.round(vals[i] / total * 100) : 0}%</span>
+          </div>
+        </div>
+        <div style="height:3px;background:var(--surface2);border-radius:99px">
+          <div style="height:100%;width:${total ? Math.round(vals[i] / total * 100) : 0}%;background:${colors[i]};border-radius:99px;transition:width .6s ease"></div>
+        </div>
+      </div>`).join('')}
+    </div>`;
+      el.appendChild(card);
+    }
+
+    // ── 5. gauge ─────────────────────────────────────────────
+    function renderShell_gauge(spec, el) {
+      const p = resolveColors();
+      const val = spec.fields.value;
+      const col = p.forVal(val, spec.thresholds);
+      const bcl = p.badgeCls(val, spec.thresholds);
+      const blb = p.badgeLabel(val, spec.thresholds, spec.unit || '');
+      const c = gc();
+
+      const R = 52, CX = 70, CY = 66, SW = 11;
+      const sa = -Math.PI, sweep = Math.PI;
+      function pt(a) { return [CX + R * Math.cos(a), CY + R * Math.sin(a)]; }
+      const [sx, sy] = pt(sa), [ex, ey] = pt(sa + sweep);
+      const va = sa + (val / 100) * sweep;
+      const [vx, vy] = pt(va);
+      const wa = sa + ((spec.thresholds?.warn || 80) / 100) * sweep;
+      const ca = sa + ((spec.thresholds?.critical || 60) / 100) * sweep;
+
+      const dk = document.documentElement.getAttribute('data-theme') !== 'light';
+      const trackCol = dk ? '#252f45' : '#e2e8f0';
+
+      const card = makeCard(spec.title, spec.insight,
+        blb ? `<span class="badge ${bcl}">${blb}</span>` : '', col);
+      const body = card.querySelector('.wi-body');
+      body.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;padding-top:4px">
+      <svg width="140" height="78" viewBox="0 0 140 78">
+        <path d="M${sx},${sy} A${R},${R} 0 0,1 ${ex},${ey}"
+          fill="none" stroke="${trackCol}" stroke-width="${SW}" stroke-linecap="round"/>
+        <path d="M${sx},${sy} A${R},${R} 0 0,1 ${pt(ca)[0]},${pt(ca)[1]}"
+          fill="none" stroke="${c.red}" stroke-width="${SW}" stroke-linecap="round" opacity=".3"/>
+        <path d="M${pt(ca)[0]},${pt(ca)[1]} A${R},${R} 0 0,1 ${pt(wa)[0]},${pt(wa)[1]}"
+          fill="none" stroke="${c.amber}" stroke-width="${SW}" stroke-linecap="round" opacity=".3"/>
+        <path d="M${sx},${sy} A${R},${R} 0 0,1 ${vx},${vy}"
+          fill="none" stroke="${col}" stroke-width="${SW}" stroke-linecap="round"/>
+        <circle cx="${vx}" cy="${vy}" r="5" fill="${col}" stroke="var(--card)" stroke-width="2"/>
+        <text x="${CX}" y="${CY + 4}" text-anchor="middle"
+          font-size="21" font-weight="900" font-family="'Geist Mono',monospace" fill="${col}">${val}${spec.unit || ''}</text>
+      </svg>
+      <div style="display:flex;justify-content:space-between;width:128px;margin-top:-2px;font-size:9px;color:var(--muted)">
+        <span>0</span>
+        <span>${spec.thresholds?.critical || 60}</span>
+        <span>${spec.thresholds?.warn || 80}</span>
+        <span>100</span>
+      </div>
+    </div>`;
+      el.appendChild(card);
+    }
+
+    // ── 6. score_card ─────────────────────────────────────────
+    function renderShell_score_card(spec, el) {
+      const p = resolveColors();
+      const items = spec.fields;
+      const keys = Object.keys(items);
+      const counts = { pass: 0, warn: 0, fail: 0 };
+      keys.forEach(k => {
+        const v = items[k];
+        if (v === 'pass') counts.pass++; else if (v === 'warn') counts.warn++; else counts.fail++;
+      });
+
+      const overall = counts.fail > 0 ? 'fail' : counts.warn > 0 ? 'warn' : 'pass';
+      const oCol = { pass: p.pass, warn: p.warn, fail: p.fail }[overall];
+      const oBcl = { pass: 'bd-green', warn: 'bd-amber', fail: 'bd-red' }[overall];
+      const oLbl = { pass: 'All passing', warn: 'Monitor', fail: 'Issues found' }[overall];
+
+      const stCols = { pass: p.pass, warn: p.warn, fail: p.fail };
+      const stBcls = { pass: 'bd-green', warn: 'bd-amber', fail: 'bd-red' };
+      const stIcons = {
+        pass: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="${p.pass}" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`,
+        warn: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="${p.warn}" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+        fail: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="${p.fail}" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+      };
+
+      const card = makeCard(spec.title, spec.insight,
+        `<span class="badge ${oBcl}">${oLbl}</span>`, oCol);
+      const body = card.querySelector('.wi-body');
+      body.innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      ${[['pass', 'Passing'], ['warn', 'Monitor'], ['fail', 'Issues']].map(([s, lbl]) => `
+      <div style="flex:1;text-align:center;padding:8px 4px;border-radius:8px;
+        background:${stCols[s]}18;border:1px solid ${stCols[s]}33">
+        <div style="font-size:20px;font-weight:900;font-family:var(--mono);color:${stCols[s]};line-height:1">${counts[s]}</div>
+        <div style="font-size:9px;font-weight:700;color:${stCols[s]};margin-top:3px;text-transform:uppercase;letter-spacing:.04em">${lbl}</div>
+      </div>`).join('')}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      ${keys.map(k => {
+        const s = items[k];
+        const col = stCols[s], bcl = stBcls[s];
+        return `<div style="display:flex;align-items:center;justify-content:space-between;
+          padding:6px 10px;border-radius:7px;background:${col}12;border:1px solid ${col}28">
+          <span style="font-size:12px;font-weight:600;color:var(--text)">${k}</span>
+          <div style="display:flex;align-items:center;gap:4px">
+            ${stIcons[s]}
+            <span style="font-size:10px;font-weight:700;color:${col};text-transform:uppercase">${s}</span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+      el.appendChild(card);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  WIDGET SPEC RENDERER — iterates specs, calls shells
+    // ══════════════════════════════════════════════════════════
+    const SHELL_MAP = {
+      stat_card: renderShell_stat_card,
+      donut_2: renderShell_donut_2,
+      donut_3: renderShell_donut_3,
+      split_bar: renderShell_split_bar,
+      gauge: renderShell_gauge,
+      score_card: renderShell_score_card,
+    };
+
+    function validateSpec(spec) {
+      const VALID = Object.keys(SHELL_MAP);
+      if (!VALID.includes(spec.type)) return false;
+      if (typeof spec.title !== 'string') return false;
+      if (typeof spec.insight !== 'string') return false;
+      if (typeof spec.fields !== 'object') return false;
+      return true;
+    }
+
+    function renderWorkflowInsights(specs, source) {
+      const grid = document.getElementById('wi-grid');
+      grid.innerHTML = '';
+      const valid = specs.filter(validateSpec);
+
+      // ── Zone assignment by widget type (geometry-aware) ──────────────────
+      // Compact zone (c1–c4): donut_2, donut_3, gauge, stat_card — square/tall-narrow
+      // Full-row zone (fr): score_card — wide with many rows, needs full width
+      // Bar zone (b1–b2): split_bar — wide but short, pairs well side-by-side
+      // Overflow: anything beyond the named zones
+      const COMPACT_TYPES = new Set(['donut_2', 'donut_3', 'gauge', 'stat_card']);
+      const FULLROW_TYPES = new Set(['score_card']);
+      const BAR_TYPES = new Set(['split_bar', 'horizontal_bar', 'trend_line']);
+
+      const compact = [], fullrow = [], bars = [], overflow = [];
+      valid.forEach(spec => {
+        if (FULLROW_TYPES.has(spec.type)) fullrow.push(spec);
+        else if (BAR_TYPES.has(spec.type)) bars.push(spec);
+        else if (COMPACT_TYPES.has(spec.type)) compact.push(spec);
+        else overflow.push(spec);
+      });
+
+      const compactZones = ['wi-c1', 'wi-c2', 'wi-c3', 'wi-c4'];
+      const barZones = ['wi-b1', 'wi-b2'];
+
+      let delay = 0;
+      function makeZone(cls, spec) {
+        const zone = document.createElement('div');
+        zone.className = cls;
+        zone.style.animation = `cardReveal .38s ease ${delay}ms both`;
+        delay += 55;
+        grid.appendChild(zone);
+        const shell = SHELL_MAP[spec.type];
+        if (shell) shell(spec, zone);
+      }
+      function makeZoneExtra(spec, containerClass) {
+        let cont = grid.querySelector('.' + containerClass);
+        if (!cont) {
+          cont = document.createElement('div');
+          cont.className = containerClass + ' wi-overflow';
+          // span full width below the named grid
+          cont.style.gridColumn = '1 / -1';
+          grid.appendChild(cont);
+        }
+        const wrap = document.createElement('div');
+        wrap.style.animation = `cardReveal .38s ease ${delay}ms both`;
+        delay += 55;
+        cont.appendChild(wrap);
+        const shell = SHELL_MAP[spec.type];
+        if (shell) shell(spec, wrap);
+      }
+
+      // Place compact widgets in c1–c4
+      compact.forEach((spec, i) => {
+        if (i < compactZones.length) makeZone(compactZones[i], spec);
+        else makeZoneExtra(spec, 'wi-overflow-compact');
+      });
+
+      // Place score_card(s) in fr (first one gets fullrow, rest overflow)
+      fullrow.forEach((spec, i) => {
+        if (i === 0) makeZone('wi-fr', spec);
+        else makeZoneExtra(spec, 'wi-overflow-full');
+      });
+
+      // Place split bars in b1–b2
+      bars.forEach((spec, i) => {
+        if (i < barZones.length) makeZone(barZones[i], spec);
+        else makeZoneExtra(spec, 'wi-overflow-bars');
+      });
+
+      // Anything else
+      overflow.forEach(spec => makeZoneExtra(spec, 'wi-overflow-misc'));
+
+      // Attribution
+      const attr = document.getElementById('wi-attribution');
+      const srcLabel = source === 'llm' ? 'AI-generated · Approach 3' : source === 'static' ? 'Static config' : 'Fallback';
+      attr.innerHTML = `✦ ${valid.length} insights · ${srcLabel}`;
+
+      // Status pill → green
+      const pill = document.getElementById('wi-status-pill');
+      pill.querySelector('span').style.background = 'var(--green)';
+      pill.style.background = 'var(--green-bg)';
+      pill.style.borderColor = 'var(--green-bd)';
+      pill.style.color = 'var(--green)';
+      document.getElementById('wi-status-text').textContent =
+        `${valid.length} insights · ${source === 'static' ? 'Static data' : source === 'llm' ? 'AI-generated' : 'Fallback'}`;
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  LLM WIRING — Approach 3 Hybrid
+    //  Uncomment the fetchFromLLM() call in initInsights() when
+    //  the Anthropic API is available in your environment.
+    // ══════════════════════════════════════════════════════════
+
+    const WIDGET_MENU_PROMPT = `
+Available widget types — you MUST only choose from this list:
+
+stat_card   : Single large number with threshold colour and progress bar. Best for rates/percentages.
+              Required fields: { value: number, total?: number }
+
+donut_2     : Two-segment donut chart (pass/fail, yes/no, two-way split).
+              Required fields: { [label1]: number, [label2]: number }
+
+donut_3     : Three-segment donut (three-way classification split).
+              Required fields: { [label1]: number, [label2]: number, [label3]: number }
+
+split_bar   : Horizontal stacked bar showing distribution across 2–3 categories.
+              Required fields: { [label1]: number, [label2]: number, [label3?]: number }
+
+gauge       : Half-circle arc gauge with threshold bands (red/amber/green zones).
+              Best for compliance/SLA scores. Required fields: { value: number }
+
+score_card  : Per-item pass/warn/fail status table with summary counts.
+              Required fields: { [stage_name]: "pass"|"warn"|"fail", ... }
+`;
+
+    const WIDGET_SPEC_SCHEMA = `
+Return a JSON array of 4–9 widget specs. Each spec must match this schema exactly:
+{
+  "type":         string (one of the 6 types above),
+  "title":        string (short card title, max 5 words),
+  "insight":      string (one sentence explaining what this metric tells a manager),
+  "source_step":  number | null (index 0–13 into the step array, null for workflow-level),
+  "fields":       object (key-value pairs matching the required fields for the chosen type),
+  "thresholds":   { "warn": number, "critical": number } | null (for stat_card and gauge),
+  "unit":         string | null ("%", "jobs", "docs", "sec"),
+  "colors":       string[] | null (CSS color values for donut/split_bar segments)
+}
+Only return the JSON array. No explanation, no markdown, no preamble.
+`;
+
+    async function fetchFromLLM() {
+      // ── UNCOMMENT THIS BLOCK WHEN ANTHROPIC API IS AVAILABLE ──────────────
+      /*
+      const prompt = `
+    WORKFLOW DOMAIN: ${WORKFLOW_META.domain}
+    WORKFLOW DESCRIPTION: ${WORKFLOW_META.description}
+    
+    BOT DESCRIPTIONS:
+    ${WORKFLOW_META.bots.map(b => `Step ${b.step} — ${b.name} [${b.role}]: ${b.desc}`).join('\n')}
+    
+    AVAILABLE DATA SCHEMA (available per step via D.steps[i]):
+    - active: number of jobs currently being processed at this step
+    - done:   number of jobs that have completed this step
+    - stale:  number of jobs past their expected processing time
+    - avg:    average actual processing time in seconds
+    - exp:    expected processing time in seconds
+    - unassigned: jobs with no assigned reviewer (HITL steps only)
+    Workflow-level: D.total, D.completed, D.failed, D.tph (jobs/hr), D.avg_s, D.exp_s
+    
+    ${WIDGET_MENU_PROMPT}
+    
+    ${WIDGET_SPEC_SCHEMA}
+      `.trim();
+    
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+    
+      const data = await response.json();
+      const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+      const clean = text.replace(/```json|```/g, '').trim();
+      return JSON.parse(clean);
+      */
+      // ── END LLM BLOCK ───────────────────────────────────────────────────────
+
+      // Placeholder — remove when uncommenting LLM block above
+      throw new Error('LLM call commented out — using static data');
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  CACHE LAYER + INIT
+    // ══════════════════════════════════════════════════════════
+    const CACHE_KEY = `widget_spec_${WORKFLOW_META.session_id}`;
+
+    function generateDynamicSpecs() {
+      const specs = [];
+      const total = BATCHS.length;
+
+      // 1. Existing Volume card
+      specs.push({
+        type: 'stat_card',
+        title: 'Payroll Volume',
+        insight: 'Total employee payroll batches extracted from the uploaded batch.',
+        fields: { value: total, total: total },
+        unit: 'docs'
+      });
+
+      if (total > 0) {
+        // Aggregations
+        const totalGross = BATCHS.reduce((s, r) => s + (parseFloat(r.gross_pay || r.input?.gross_pay) || 0), 0);
+        const avgGross = Math.round(totalGross / total);
+
+        const totalOT = BATCHS.reduce((s, r) => s + (parseFloat(r.overtime || r.input?.overtime) || 0), 0);
+        const avgOT = Math.round(totalOT / total);
+
+        const totalTax = BATCHS.reduce((s, r) => s + (parseFloat(r.income_tax || r.input?.income_tax) || 0), 0);
+        const totalPen = BATCHS.reduce((s, r) => s + (parseFloat(r.pension || r.input?.pension) || 0), 0);
+
+        const totalBasic = BATCHS.reduce((s, r) => s + (parseFloat(r.basic_salary || r.input?.basic_salary) || 0), 0);
+        const totalAllow = BATCHS.reduce((s, r) => s + (parseFloat(r.allowance || r.input?.allowance) || 0), 0);
+
+        // 2. Avg Gross Salary
+        specs.push({
+          type: 'stat_card',
+          title: 'Avg Gross Salary',
+          insight: 'Mean gross salary calculated across the processed employee dataset.',
+          fields: { value: avgGross, total: null },
+          unit: '$'
+        });
+
+        // 3. NEW: Overtime Utilization
+        specs.push({
+          type: 'stat_card',
+          title: 'Avg Overtime',
+          insight: 'Average overtime payout per employee in this payroll cycle.',
+          fields: { value: avgOT, total: null },
+          unit: '$'
+        });
+
+        // 4. Extraction Quality (Semantic check)
+        const gptStep = D.steps.find(s => {
+          const m = STEPS[s.o];
+          return m && (m.n.includes('GPT') || m.n.includes('Validator'));
+        });
+
+        if (gptStep) {
+          specs.push({
+            type: 'donut_2',
+            title: 'Extraction Quality',
+            insight: 'Real-time performance of the data validation step in this specific workflow.',
+            fields: { 'Accurate': gptStep.done, 'Other': D.total - gptStep.done },
+            thresholds: { warn: 90, critical: 75 },
+            unit: '%'
+          });
+        }
+
+        // 5. NEW: Deduction Balance
+        specs.push({
+          type: 'donut_3',
+          title: 'Deduction Balance',
+          insight: 'Proportion of gross salary redirected to Tax vs Pension contributions.',
+          fields: { 'Income Tax': Math.round(totalTax), 'Pension': Math.round(totalPen) },
+          unit: '$'
+        });
+
+        // 6. NEW: Gross Pay Breakdown
+        specs.push({
+          type: 'donut_3',
+          title: 'Gross Pay Allocation',
+          insight: 'Segmentation of total payroll into Basic Salary, Overtime, and Allowances.',
+          fields: {
+            'Basic': Math.round(totalBasic),
+            'Overtime': Math.round(totalOT),
+            'Allowances': Math.round(totalAllow)
+          },
+          unit: '$'
+        });
+      }
+
+      // 7. Pipeline Readiness
+      specs.push({
+        type: 'score_card',
+        title: 'Pipeline Readiness',
+        insight: 'Current health status of the primary functional stages based on live job distributions.',
+        fields: {
+          'Ingestion': D.total > 0 ? 'pass' : 'warn',
+          'Processing': D.active > 0 ? 'warn' : 'pass',
+          'Completion': D.completed === D.total ? 'pass' : 'info'
+        }
+      });
+
+      return specs;
+    }
+
+    async function initInsights() {
+      if (document.getElementById('wi-grid').children.length > 0) return;
+
+      document.getElementById('wi-domain-label').textContent = WORKFLOW_META.domain;
+      document.getElementById('wi-domain-sub').textContent = WORKFLOW_META.description;
+      document.getElementById('wi-status-text').textContent = 'Computing dynamic metrics from your data...';
+
+      // Use dynamic specs generated from real data
+      const dynamicSpecs = generateDynamicSpecs();
+      renderWorkflowInsights(dynamicSpecs, 'dynamic');
+    }
+
+    function refreshInsights() {
+      // Clear cache and re-run
+      try { sessionStorage.removeItem(CACHE_KEY); } catch (e) { }
+      document.getElementById('wi-grid').innerHTML = '';
+      initInsights();
+    }
+
+
+    // ══════════════════════════════════════════════════════════
+    //  INTERACTIONS
+    // ══════════════════════════════════════════════════════════
+    let notifOpen = false;
+    function toggleNotif() {
+      notifOpen = !notifOpen;
+      document.getElementById('notif-panel').classList.toggle('hidden', !notifOpen);
+    }
+    function clearNotifs() {
+      document.getElementById('n-count').classList.add('hidden');
+      document.getElementById('notif-panel').innerHTML = `<div style="padding:22px;text-align:center;color:var(--muted);font-size:12px">✓ All caught up</div>`;
+      notifOpen = false;
+      document.getElementById('notif-panel').classList.add('hidden');
+    }
+    document.addEventListener('click', e => {
+      if (!document.getElementById('notif-wrap').contains(e.target)) {
+        document.getElementById('notif-panel').classList.add('hidden'); notifOpen = false;
+      }
+    });
+
+    function renderBatchs() {
+      const container = document.getElementById('batches-tbl');
+      if (!BATCHS.length) {
+        container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">No batches found in synthetic data.</div>';
+        return;
+      }
+      // Get all unique keys from record (root and input) for columns
+      const allKeys = new Set(['batch_id']);
+      BATCHS.forEach(r => {
+        // Collect root keys excluding special objects
+        Object.keys(r).forEach(k => {
+          if (!['batch_id', 'input', 'status', 'bucket', 'key', 'pay_period_start', 'pay_period_end'].includes(k)) allKeys.add(k);
+        });
+        // Collect input keys for legacy support
+        if (r.input) Object.keys(r.input).forEach(k => allKeys.add(k));
+      });
+      // Prioritize some key columns if they exist
+      const priority = ['employee_name', 'employee_id', 'gross_pay', 'net_pay', 'currency'];
+      const sortedKeys = Array.from(allKeys).sort((a, b) => {
+        if (priority.includes(a) && !priority.includes(b)) return -1;
+        if (!priority.includes(a) && priority.includes(b)) return 1;
+        if (priority.includes(a) && priority.includes(b)) return priority.indexOf(a) - priority.indexOf(b);
+        return a.localeCompare(b);
+      });
+      const cols = sortedKeys.slice(0, 10); // Expanded slightly for better view
+
+      let html = '<table><thead><tr>';
+      cols.forEach(c => html += `<th>${c.replace(/_/g, ' ')}</th>`);
+      html += '<th>Status</th></tr></thead><tbody>';
+
+      BATCHS.forEach(r => {
+        html += '<tr>';
+        cols.forEach(c => {
+          let val = (c === 'batch_id') ? r.batch_id : (r[c] !== undefined ? r[c] : (r.input ? r.input[c] : '—'));
+          if (typeof val === 'object' && val !== null) val = JSON.stringify(val).slice(0, 20) + '...';
+          html += `<td><span style="font-family:var(--mono);font-size:11px">${val !== null && val !== undefined ? val : '—'}</span></td>`;
+        });
+        html += `<td>${badge('bd-green', '✓ Ready')}</td></tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    let curTab = 'flow';
+    function switchTab(t) {
+      curTab = t;
+      ['flow', 'table', 'pipeline', 'funnel', 'chart', 'batches'].forEach(x => {
+        const el = document.getElementById(`tv-${x}`);
+        if (el) el.classList.toggle('hidden', x !== t);
+        const btn = document.getElementById(`tb-${x}`);
+        if (btn) btn.classList.toggle('active', x === t);
+      });
+      if (t === 'flow') renderFlowDiagram();
+      if (t === 'pipeline') renderPipeline();
+      if (t === 'funnel') renderFunnel();
+      if (t === 'chart') renderTimeChart();
+      if (t === 'batches') renderBatchs();
+    }
+
+    function switchView(v) {
+      const vManager = document.getElementById('view-manager');
+      const vMember = document.getElementById('view-member');
+      const bManager = document.getElementById('vbtn-manager');
+      const bMember = document.getElementById('vbtn-member');
+      const sidebar = document.getElementById('sidebar');
+
+      if (vManager) vManager.classList.toggle('hidden', v !== 'manager');
+      if (vMember) vMember.classList.toggle('hidden', v !== 'member');
+      if (bManager) bManager.classList.toggle('active', v === 'manager');
+      if (bMember) bMember.classList.toggle('active', v === 'member');
+      if (sidebar) sidebar.classList.toggle('hidden', v !== 'manager');
+    }
+
+    let dark = false;  // light is the default theme
+    function toggleTheme() {
+      dark = !dark;
+      document.documentElement.setAttribute('data-theme', dark ? '' : 'light');
+      document.getElementById('t-sun').classList.toggle('hidden', !dark);
+      document.getElementById('t-moon').classList.toggle('hidden', dark);
+      setTimeout(() => { renderSpark(); renderStepLoad(); if (curTab === 'chart') renderTimeChart(); if (curTab === 'flow') renderFlowDiagram(); }, 30);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  INIT
+    // ══════════════════════════════════════════════════════════
+    (function init() {
+      renderPageHeader();
+      renderHealth();
+      renderNotifications();
+      renderKPIs();
+      renderSpark();
+      renderStepLoad();
+      renderUnassigned();
+      renderTable();
+      renderFlowDiagram();
+      // Auto-open notifications panel on load so bottleneck alert is visible
+      setTimeout(() => {
+        notifOpen = true;
+        document.getElementById('notif-panel').classList.remove('hidden');
+      }, 600);
+    })();
+  </script>
+
+  <!-- ══ HITL JOB IFRAME MODAL ══════════════════════════════════════════════ -->
+  <div id="hitl-job-modal" style="
+    display:none;position:fixed;inset:0;z-index:9999;
+    background:rgba(0,0,0,.55);backdrop-filter:blur(3px);
+    align-items:center;justify-content:center;">
+    <div style="
+      position:relative;width:92vw;height:90vh;max-width:1400px;
+      background:var(--surface);border-radius:14px;
+      border:1px solid var(--border2);
+      box-shadow:0 32px 80px rgba(0,0,0,.45);
+      display:flex;flex-direction:column;overflow:hidden;">
+      <div style="
+        height:44px;flex-shrink:0;background:var(--surface2);
+        border-bottom:1px solid var(--border);
+        display:flex;align-items:center;padding:0 16px;gap:10px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--purple);box-shadow:0 0 6px var(--purple)"></div>
+        <span id="hitl-modal-title" style="font-size:12px;font-weight:800;color:var(--purple);
+          text-transform:uppercase;letter-spacing:.07em;flex:1">HITL Review</span>
+        <button onclick="closeHitlModal()" style="
+          width:26px;height:26px;border-radius:6px;border:1px solid var(--border);
+          background:transparent;color:var(--muted);cursor:pointer;font-size:18px;
+          display:flex;align-items:center;justify-content:center;transition:all .12s;"
+          onmouseover="this.style.color='var(--text)'"
+          onmouseout="this.style.color='var(--muted)'">&times;</button>
+      </div>
+      <iframe id="hitl-job-frame" src="" style="flex:1;width:100%;border:none;"></iframe>
+    </div>
+  </div>
+
+  <script>
+    function openHitlModal(stepName) {
+      document.getElementById('hitl-modal-title').textContent = stepName + ' · HITL Review';
+      document.getElementById('hitl-job-frame').src = '/job?embed=1&step=' + encodeURIComponent(stepName);
+      document.getElementById('hitl-job-modal').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+    function closeHitlModal() {
+      document.getElementById('hitl-job-modal').style.display = 'none';
+      document.getElementById('hitl-job-frame').src = '';
+      document.body.style.overflow = '';
+    }
+    document.getElementById('hitl-job-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeHitlModal();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeHitlModal();
+    });
+  </script>
+</body>
+
+</html>

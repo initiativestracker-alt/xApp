@@ -1,0 +1,442 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  /* ══ Upload-specific Styles ══ */
+  .upload-shell {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  .upload-hero {
+    text-align: center;
+    padding: 20px 0 30px;
+  }
+
+  .upload-hero h1 {
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .upload-hero p {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .stepper {
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  .step-node {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+  }
+
+  .step-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+  }
+
+  .step-circle.active {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #fff;
+  }
+
+  .step-circle.done {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+  }
+
+  .step-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text2);
+  }
+
+  .step-label.active {
+    color: var(--text);
+  }
+
+  .step-sep {
+    height: 1px;
+    background: var(--border);
+    flex: 0.5;
+    margin: 0 10px;
+  }
+
+  .card-clean {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+  }
+
+  .card-head {
+    padding: 24px 28px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .card-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .card-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .card-body {
+    padding: 28px;
+  }
+
+  .uz {
+    border: 2px dashed var(--border2);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    transition: all 0.2s;
+    cursor: pointer;
+    background: var(--bg);
+  }
+
+  .uz:hover {
+    border-color: var(--blue);
+    background: var(--blue-bg);
+  }
+
+  .uz-icon {
+    margin-bottom: 12px;
+    color: var(--muted);
+  }
+
+  .uz-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .uz-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--blue);
+    color: #fff;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .si {
+    padding: 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .si-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .si-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .si-scope-text {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text2);
+    line-height: 1.6;
+    margin-top: 4px;
+  }
+
+  .si-scope-short { display: block; }
+  .si-scope-full  { display: none;  }
+
+  .read-more-btn {
+    background: none;
+    border: none;
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 4px 0 0;
+    text-decoration: underline;
+  }
+
+  textarea {
+    width: 100%;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-bg);
+  }
+
+  .hidden {
+    display: none !important;
+  }
+</style>
+
+<div class="upload-shell">
+  <div class="upload-hero">
+    <h1>Initialize XAPP</h1>
+    <p>Configure your automated processing engine by defining your project scope and uploading your workflow.</p>
+  </div>
+
+  <div class="stepper">
+    <div class="step-node">
+      <div class="step-circle active" id="sc-1">1</div>
+      <div class="step-label active">Project Scope</div>
+    </div>
+    <div class="step-sep"></div>
+    <div class="step-node">
+      <div class="step-circle" id="sc-2">2</div>
+      <div class="step-label">Resources</div>
+    </div>
+    <div class="step-sep"></div>
+    <div class="step-node">
+      <div class="step-circle" id="sc-3">3</div>
+      <div class="step-label">Review</div>
+    </div>
+  </div>
+
+  <!-- STEP 1: Scope -->
+  <div class="step-panel" id="panel-1">
+    <div class="card-clean">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Define Project Scope</div>
+          <div class="card-sub">What is this automated process supposed to achieve?</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <textarea id="scope-input"
+          placeholder="e.g. This workflow handles end-to-end payroll processing for the North American division, extracting data from scanned PDF paystubs and validating against the HRIS system."></textarea>
+        <div style="margin-top:20px; text-align:right;">
+          <button class="btn btn-primary" onclick="goToStep(2)">Continue to Resources</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Resources -->
+  <div class="step-panel hidden" id="panel-2">
+    <div class="card-clean">
+      <div class="card-head">
+        <div class="card-title">Workflow Resources</div>
+        <div class="card-sub">Upload your workflow JSON configuration file</div>
+      </div>
+      <div class="card-body">
+        <div style="display:grid; gap:20px;">
+          <div class="uz" onclick="document.getElementById('wf-file').click()">
+            <input type="file" id="wf-file" accept=".json" style="display:none" onchange="onFileSelect(event,'wf')">
+            <div class="uz-name">Workflow JSON</div>
+            <div class="uz-hint" id="wf-hint">Click to upload workflow_xdas.json</div>
+          </div>
+        </div>
+        <div style="margin-top:24px; display:flex; justify-content:space-between;">
+          <button class="btn btn-secondary" onclick="goToStep(1)">Back</button>
+          <button class="btn btn-primary" id="step2-next" onclick="goToStep(3)" disabled>Review Configuration</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Review -->
+  <div class="step-panel hidden" id="panel-3">
+    <div class="card-clean">
+      <div class="card-head">
+        <div class="card-title">Review & Launch</div>
+        <div class="card-sub">Confirm your configuration before generating the application</div>
+      </div>
+      <div class="card-body">
+        <div class="summary-grid" id="summary-grid"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button class="btn btn-secondary" onclick="goToStep(2)">Back</button>
+          <button class="btn btn-primary" id="generate-btn" onclick="doGenerate()">Generate XAPP</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let workflowData = null;
+  const panels = [1, 2, 3];
+
+  function goToStep(s) {
+    panels.forEach(p => document.getElementById(`panel-${p}`).classList.toggle('hidden', p !== s));
+    panels.forEach(p => {
+      const c = document.getElementById(`sc-${p}`);
+      c.classList.toggle('active', p === s);
+      c.classList.toggle('done', p < s);
+    });
+    if (s === 3) buildSummary();
+  }
+
+  function onFileSelect(e, type) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (f) => {
+      try {
+        const data = JSON.parse(f.target.result);
+        workflowData = data;
+        document.getElementById('wf-hint').textContent = '✓ ' + file.name;
+        checkStep2();
+      } catch (err) { alert('Invalid JSON file'); }
+    }
+    reader.readAsText(file);
+  }
+
+  function checkStep2() {
+    document.getElementById('step2-next').disabled = !workflowData;
+  }
+
+  function buildSummary() {
+    const scope = document.getElementById('scope-input').value.trim();
+    const PREVIEW = 120;
+    const needsToggle = scope.length > PREVIEW;
+    const scopeHtml = needsToggle
+      ? `<span class="si-scope-short" id="scope-short">${escHtml(scope.slice(0, PREVIEW))}…</span>
+         <span class="si-scope-full"  id="scope-full">${escHtml(scope)}</span>
+         <br><button class="read-more-btn" onclick="toggleScope(this)">Read more</button>`
+      : `<span>${escHtml(scope)}</span>`;
+
+    document.getElementById('summary-grid').innerHTML = `
+      <div class="si">
+        <div class="si-label">Project Scope</div>
+        <div class="si-scope-text">${scopeHtml}</div>
+      </div>
+      <div class="si">
+        <div class="si-label">Workflow</div>
+        <div class="si-value">${workflowData?.nodes?.length || 0} nodes</div>
+      </div>
+    `;
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function toggleScope(btn) {
+    const short = document.getElementById('scope-short');
+    const full  = document.getElementById('scope-full');
+    const expanded = full.style.display === 'block';
+    short.style.display = expanded ? 'block' : 'none';
+    full.style.display  = expanded ? 'none'  : 'block';
+    btn.textContent     = expanded ? 'Read more' : 'Show less';
+  }
+
+  async function doGenerate() {
+    const btn = document.getElementById('generate-btn');
+    btn.textContent = 'Generating...';
+    btn.disabled = true;
+    const scope = document.getElementById('scope-input').value.trim();
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workflow: workflowData, scope: scope })
+      });
+      const result = await res.json();
+      if (!res.ok) { throw new Error(result.error || 'Generation failed'); }
+      window.location.href = '/workbench';
+    } catch (err) { alert('Generation failed'); btn.textContent = 'Generate XAPP'; btn.disabled = false; }
+  }
+
+  // Pre-load sample workflow
+  async function loadSamples() {
+    try {
+      const r1 = await fetch('/api/sample/workflow'); workflowData = await r1.json();
+      document.getElementById('wf-hint').textContent = '✓ Sample loaded';
+      checkStep2();
+    } catch (e) { }
+  }
+  loadSamples();
+</script>
+{% endblock %}

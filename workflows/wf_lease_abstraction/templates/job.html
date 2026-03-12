@@ -1,0 +1,3892 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>HITL Reviewer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f0f4fa;
+      --surface: #fff;
+      --surface2: #f5f7fc;
+      --card: #fff;
+      --border: #e2e8f4;
+      --border2: #cbd5e8;
+      --text: #0f172a;
+      --text2: #475569;
+      --muted: #94a3b8;
+      --blue: #2563eb;
+      --blue-bg: #eff6ff;
+      --blue-bd: #bfdbfe;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --green-bd: #bbf7d0;
+      --amber: #d97706;
+      --amber-bg: #fffbeb;
+      --amber-bd: #fde68a;
+      --violet: #7c3aed;
+      --violet-bg: #f5f3ff;
+      --violet-bd: #ddd6fe;
+      --font: 'Geist', system-ui, sans-serif;
+      --mono: 'Geist Mono', monospace;
+      --topbar-h: 44px;
+      --ctx-h: 88px;
+      --ab-h: 48px;
+      --gutter-w: 6px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f1117;
+      --surface: #181d2a;
+      --surface2: #1e2436;
+      --card: #1c2130;
+      --border: #252e42;
+      --border2: #2d3850;
+      --text: #e8edf5;
+      --text2: #8a97b0;
+      --muted: #4d5a73;
+      --blue: #4f8ef7;
+      --blue-bg: #0f1e3d;
+      --blue-bd: #1a3566;
+      --green: #34d399;
+      --green-bg: #052e16;
+      --green-bd: #166534;
+      --amber: #f59e0b;
+      --amber-bg: #1c1006;
+      --amber-bd: #92400e;
+      --violet: #a78bfa;
+      --violet-bg: #1e1a2e;
+      --violet-bd: #4c1d95;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      font-size: 13px;
+    }
+
+    #shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      height: var(--topbar-h);
+      flex-shrink: 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 10px;
+      z-index: 100;
+    }
+
+    .tb-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text2);
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .12s;
+      flex-shrink: 0;
+    }
+
+    .tb-back:hover {
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    .tb-sep {
+      color: var(--border2);
+      flex-shrink: 0;
+    }
+
+    .tb-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .tb-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      min-width: 0;
+    }
+
+    .tb-pill-lbl {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      white-space: nowrap;
+    }
+
+    .tb-pill-val {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      font-family: var(--mono);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 260px;
+    }
+
+    .tb-pill.batch .tb-pill-val {
+      font-family: var(--font);
+    }
+
+    .tb-spacer {
+      flex: 1;
+    }
+
+    .tb-chip {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 99px;
+      border: 1px solid var(--blue-bd);
+      color: var(--blue);
+      background: var(--blue-bg);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      flex-shrink: 0;
+    }
+
+    .tb-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all .12s;
+    }
+
+    .tb-icon:hover {
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    /* ── KPI STRIP ── */
+    .ctx-strip {
+      min-height: var(--ctx-h);
+      height: auto;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-bottom: 2px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      padding: 10px 12px;
+      overflow: hidden;
+    }
+
+    .kpi-card {
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .kpi-label {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .kpi-value {
+      margin-top: 4px;
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .kpi-sub {
+      margin-top: 3px;
+      font-size: 10px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .kpi-value.good {
+      color: var(--green);
+    }
+
+    .kpi-value.warn {
+      color: var(--amber);
+    }
+
+    /* ── PANELS ── */
+    .panels {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* panel: never use overflow:hidden on the wrapper — overflow:visible lets expand tab show */
+    .panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      min-width: 0;
+    }
+
+    .panel.collapsed {
+      width: 0 !important;
+      overflow: hidden;
+    }
+
+    #panel-center.collapsed {
+      width: 30px !important;
+      min-width: 30px;
+      overflow: visible;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--surface), var(--surface2));
+    }
+
+    #panel-center .center-strip {
+      display: none;
+    }
+
+    #panel-center.collapsed .panel-head,
+    #panel-center.collapsed .panel-body {
+      display: none;
+    }
+
+    #panel-center.collapsed .center-strip {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .center-strip-btn {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      color: var(--text2);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font);
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      letter-spacing: .04em;
+      line-height: 1.1;
+      padding: 8px 4px;
+    }
+
+    .center-strip-btn:hover {
+      color: var(--text);
+    }
+
+    .panel-head {
+      height: 36px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      gap: 7px;
+    }
+
+    .panel-title {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--muted);
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .panel-body {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .collapse-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all .12s;
+    }
+
+    .collapse-btn:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: var(--blue-bg);
+    }
+
+    /* ── GUTTER ── */
+    .gutter {
+      width: var(--gutter-w);
+      flex-shrink: 0;
+      background: var(--border);
+      cursor: col-resize;
+      position: relative;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* CRITICAL: overflow visible so expand tab can poke out */
+      overflow: visible;
+    }
+
+    .gutter:hover,
+    .gutter.drag {
+      background: var(--blue);
+    }
+
+    .gutter-dots {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      pointer-events: none;
+      position: relative;
+      z-index: 1;
+    }
+
+    .gutter-dots span {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--border2);
+    }
+
+    .gutter:hover .gutter-dots span,
+    .gutter.drag .gutter-dots span {
+      background: rgba(255, 255, 255, .7);
+    }
+
+    /* ── EXPAND TAB — pokes out from the gutter ── */
+    /*
+  The tab lives inside the gutter div. Because gutter has overflow:visible,
+  the tab can extend beyond the 6px gutter width and be fully visible and clickable.
+  Use absolute positioning relative to gutter.
+  - "tab-r" tabs point right (expand panel to the right of the gutter)  → sits on right side of gutter
+  - "tab-l" tabs point left  (expand panel to the left of the gutter)   → sits on left side of gutter
+*/
+    .expand-tab {
+      display: none;
+      /* shown by JS */
+      position: absolute;
+      width: 22px;
+      height: 56px;
+      background: var(--blue);
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      top: 50%;
+      transform: translateY(-50%);
+      box-shadow: 0 2px 8px rgba(37, 99, 235, .4);
+      transition: width .15s, background .1s;
+    }
+
+    .expand-tab:hover {
+      background: #1d4ed8;
+      width: 26px;
+    }
+
+    .expand-tab svg {
+      color: #fff;
+      flex-shrink: 0;
+      pointer-events: none;
+    }
+
+    .expand-tab.tab-r {
+      left: 100%;
+      border-radius: 0 7px 7px 0;
+    }
+
+    /* extends to the right of gutter */
+    .expand-tab.tab-l {
+      right: 100%;
+      border-radius: 7px 0 0 7px;
+    }
+
+    /* extends to the left of gutter */
+
+    /* ── LEFT: read-only PDF ── */
+    .pdf-body {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 10px;
+      gap: 8px;
+    }
+
+    .pg-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .pg-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text2);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all .12s;
+    }
+
+    .pg-btn:hover {
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    .pg-nums {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-left: auto;
+    }
+
+    .pg-in {
+      width: 34px;
+      text-align: center;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 3px 4px;
+      outline: none;
+    }
+
+    .pg-in:focus {
+      border-color: var(--blue);
+    }
+
+    .pg-of {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    .snav {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .12s;
+    }
+
+    .snav:hover:not(:disabled) {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .snav:disabled {
+      opacity: .3;
+      cursor: not-allowed;
+    }
+
+    .pdf-box {
+      flex: 1;
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f8fafc;
+    }
+
+    .pdf-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #fff;
+    }
+
+    .pdf-ph {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--muted);
+      text-align: center;
+      padding: 24px;
+    }
+
+    .pdf-ph-ico {
+      width: 52px;
+      height: 66px;
+      border: 2px solid var(--border2);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      color: var(--border2);
+    }
+
+    .pdf-ph-ico::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      right: -1px;
+      width: 14px;
+      height: 14px;
+      background: var(--surface2);
+      border-left: 2px solid var(--border2);
+      border-bottom: 2px solid var(--border2);
+      border-radius: 0 4px 0 0;
+    }
+
+    /* ── CENTER: highlights ── */
+    .ctr-body {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 10px;
+      gap: 8px;
+    }
+
+    .ctr-hint {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--muted);
+      flex-shrink: 0;
+      padding: 4px 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .sync-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--blue);
+      flex-shrink: 0;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: .35;
+      }
+    }
+
+    .hl-box {
+      flex: 1;
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f8fafc;
+    }
+
+    .hl-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background: #fff;
+    }
+
+    .hl-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .hl-rect {
+      position: absolute;
+      border-radius: 3px;
+      border: 2px solid;
+      cursor: pointer;
+      pointer-events: all;
+      transition: all .15s;
+    }
+
+    .hl-rect.pending {
+      border-color: rgba(37, 99, 235, .5);
+      background: rgba(37, 99, 235, .06);
+    }
+
+    .hl-rect.confirmed {
+      border-color: rgba(22, 163, 74, .5);
+      background: rgba(22, 163, 74, .06);
+    }
+
+    .hl-rect.edited {
+      border-color: rgba(217, 119, 6, .5);
+      background: rgba(217, 119, 6, .06);
+    }
+
+    .hl-rect.active {
+      border-color: var(--blue);
+      background: rgba(37, 99, 235, .13);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+      z-index: 4;
+    }
+
+    .hl-rect.confirmed.active {
+      border-color: var(--green);
+      background: rgba(22, 163, 74, .13);
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, .15);
+    }
+
+    .hl-rect.edited.active {
+      border-color: var(--amber);
+      background: rgba(217, 119, 6, .13);
+      box-shadow: 0 0 0 3px rgba(217, 119, 6, .15);
+    }
+
+    .hl-rect:hover:not(.active) {
+      background: rgba(37, 99, 235, .1);
+    }
+
+    .hl-lbl {
+      position: absolute;
+      top: -22px;
+      left: 0;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px 4px 4px 0;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .12s;
+    }
+
+    .hl-rect:hover .hl-lbl,
+    .hl-rect.active .hl-lbl {
+      opacity: 1;
+    }
+
+    .hl-rect.pending .hl-lbl {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .hl-rect.confirmed.hl-lbl,
+    .hl-rect.confirmed .hl-lbl {
+      background: var(--green);
+      color: #fff;
+    }
+
+    .hl-rect.edited .hl-lbl {
+      background: var(--amber);
+      color: #fff;
+    }
+
+    /* ── RIGHT PANEL ── */
+    .right-body {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* ── ATTRIBUTE VERIFICATION PANEL ── */
+    .attr-panel-body {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .attr-toolbar {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .attr-toolbar-label {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .attr-add-select {
+      font-size: 10px;
+      font-family: var(--font);
+      font-weight: 600;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text2);
+      padding: 4px 6px;
+      cursor: pointer;
+      outline: none;
+      max-width: 130px;
+    }
+
+    .attr-add-select:focus {
+      border-color: var(--blue);
+    }
+
+    .attr-add-btn {
+      height: 26px;
+      padding: 0 10px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--font);
+      border-radius: 6px;
+      border: 1px solid var(--blue-bd);
+      background: var(--blue-bg);
+      color: var(--blue);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all .12s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .attr-add-btn:hover {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .attr-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .attr-list::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .attr-list::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    .attr-row {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      transition: border-color .12s;
+    }
+
+    .attr-row:hover {
+      border-color: var(--border2);
+    }
+
+    .attr-row.edited {
+      border-color: var(--amber-bd);
+      background: var(--amber-bg);
+    }
+
+    .attr-row.confirmed {
+      border-color: var(--green-bd);
+      background: var(--green-bg);
+    }
+
+    .attr-row-head {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .attr-row-label {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .attr-row.confirmed .attr-row-label {
+      color: var(--green);
+    }
+
+    .attr-row.edited .attr-row-label {
+      color: var(--amber);
+    }
+
+    .attr-conf-badge {
+      font-size: 9px;
+      font-weight: 700;
+      font-family: var(--mono);
+      padding: 1px 6px;
+      border-radius: 99px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .attr-conf-badge.high {
+      color: var(--green);
+      border-color: var(--green-bd);
+      background: var(--green-bg);
+    }
+
+    .attr-conf-badge.med {
+      color: var(--amber);
+      border-color: var(--amber-bd);
+      background: var(--amber-bg);
+    }
+
+    .attr-conf-badge.low {
+      color: #ef4444;
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+
+    .attr-remove-btn {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all .12s;
+    }
+
+    .attr-remove-btn:hover {
+      border-color: #fecaca;
+      color: #ef4444;
+      background: #fef2f2;
+    }
+
+    .attr-input {
+      width: 100%;
+      font-size: 12px;
+      font-family: var(--mono);
+      font-weight: 600;
+      color: var(--text);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 8px;
+      outline: none;
+      transition: border-color .12s;
+      resize: none;
+    }
+
+    .attr-input:focus {
+      border-color: var(--blue);
+      background: var(--surface);
+    }
+
+    .attr-row.edited .attr-input {
+      border-color: var(--amber-bd);
+      background: var(--surface);
+      color: var(--amber);
+    }
+
+    .attr-row.confirmed .attr-input {
+      border-color: var(--green-bd);
+      background: var(--surface);
+    }
+
+    .attr-row-foot {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .attr-cfm-btn {
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--font);
+      padding: 3px 10px;
+      border-radius: 5px;
+      border: 1px solid var(--green-bd);
+      background: var(--green-bg);
+      color: var(--green);
+      cursor: pointer;
+      transition: all .12s;
+    }
+
+    .attr-cfm-btn:hover {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
+    }
+
+    .attr-cfm-btn.done {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
+      cursor: default;
+    }
+
+    .attr-rst-btn {
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--font);
+      padding: 3px 8px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      transition: all .12s;
+    }
+
+    .attr-rst-btn:hover {
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    .attr-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--muted);
+      text-align: center;
+      padding: 24px;
+    }
+
+    .attr-empty-ico {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .attr-summary {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface2);
+    }
+
+    .attr-sum-pill {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    .attr-sum-pill.c {
+      border-color: var(--green-bd);
+      color: var(--green);
+      background: var(--green-bg);
+    }
+
+    .attr-sum-pill.e {
+      border-color: var(--amber-bd);
+      color: var(--amber);
+      background: var(--amber-bg);
+    }
+
+    .attr-sum-spacer {
+      flex: 1;
+    }
+
+    .attr-save-btn {
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--font);
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--blue-bd);
+      background: var(--blue-bg);
+      color: var(--blue);
+      cursor: pointer;
+      transition: all .12s;
+    }
+
+    .attr-save-btn:hover {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    /* ── Classification group styles ── */
+    .attr-group-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 2px 2px;
+      flex-shrink: 0;
+    }
+
+    .attr-group-label {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .attr-group-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .attr-group-badge {
+      font-size: 8px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 99px;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+
+    .attr-group-badge.cls {
+      background: var(--violet-bg);
+      border: 1px solid var(--violet-bd);
+      color: var(--violet);
+    }
+
+    .attr-group-badge.ext {
+      background: var(--blue-bg);
+      border: 1px solid var(--blue-bd);
+      color: var(--blue);
+    }
+
+    /* meta (classification) row variant */
+    .attr-row.meta {
+      background: var(--violet-bg);
+      border-color: var(--violet-bd);
+    }
+
+    .attr-row.meta .attr-row-label {
+      color: var(--violet);
+    }
+
+    .attr-row.meta.confirmed {
+      background: var(--green-bg);
+      border-color: var(--green-bd);
+    }
+
+    .attr-row.meta.confirmed .attr-row-label {
+      color: var(--green);
+    }
+
+    .attr-row.meta.edited {
+      background: var(--amber-bg);
+      border-color: var(--amber-bd);
+    }
+
+    .attr-row.meta.edited .attr-row-label {
+      color: var(--amber);
+    }
+
+    .attr-meta-tag {
+      font-size: 8px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--violet-bg);
+      border: 1px solid var(--violet-bd);
+      color: var(--violet);
+      letter-spacing: .04em;
+      flex-shrink: 0;
+    }
+
+    /* Current PDF details */
+    .pdf-detail {
+      padding: 10px;
+      border-bottom: 2px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .pdf-detail-card {
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--surface2);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pdf-detail-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .pdf-detail-lbl {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .pdf-detail-name {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.35;
+      word-break: break-all;
+    }
+
+    .pdf-supervisor {
+      font-size: 11px;
+      color: var(--text2);
+    }
+
+    /* Review section */
+    .review {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Selected field */
+    .f-sel {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      display: none;
+      max-height: 210px;
+      overflow: auto;
+    }
+
+    .f-sel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    .f-sel-lbl {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--muted);
+    }
+
+    .f-pill {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .f-pill.confirmed {
+      border-color: var(--green-bd);
+      color: var(--green);
+      background: var(--green-bg);
+    }
+
+    .f-pill.edited {
+      border-color: var(--amber-bd);
+      color: var(--amber);
+      background: var(--amber-bg);
+    }
+
+    .f-val-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 8px 10px;
+      margin-bottom: 7px;
+    }
+
+    .f-val-lbl {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 3px;
+    }
+
+    .f-val {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      word-break: break-all;
+      line-height: 1.35;
+    }
+
+    .f-val.edited {
+      color: var(--amber);
+    }
+
+    .f-meta {
+      display: flex;
+      gap: 9px;
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 7px;
+      flex-wrap: wrap;
+    }
+
+    .f-acts {
+      display: flex;
+      gap: 6px;
+    }
+
+    .f-btn {
+      flex: 1;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all .12s;
+      text-align: center;
+    }
+
+    .f-btn.cfm {
+      border-color: var(--green-bd);
+      color: var(--green);
+      background: var(--green-bg);
+    }
+
+    .f-btn.cfm:hover {
+      background: rgba(22, 163, 74, .15);
+    }
+
+    .f-btn.cfm.done {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
+      cursor: default;
+    }
+
+    .f-btn.rst {
+      border-color: var(--border);
+      color: var(--text2);
+      background: transparent;
+    }
+
+    .f-btn.rst:hover {
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    .f-hint {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .f-hint strong {
+      color: var(--blue);
+    }
+
+    /* Chat */
+    .chat {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 220px;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+
+    .chat-head {
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .chat-ttl {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chat-online {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 4px var(--green);
+    }
+
+    .chat-head-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .chat-ctx {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: var(--font);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .chat-cmds {
+      padding: 7px 9px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .cmd-chip {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text2);
+      cursor: pointer;
+      font-family: var(--font);
+    }
+
+    .cmd-chip:hover {
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    .chat-msgs {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      min-height: 0;
+    }
+
+    .chat-msgs::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .chat-msgs::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    .cmsg {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .cmsg.me {
+      align-items: flex-end;
+    }
+
+    .cmsg.them {
+      align-items: flex-start;
+    }
+
+    .cbbl {
+      max-width: 90%;
+      padding: 7px 10px;
+      border-radius: 10px;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .cmsg.me .cbbl {
+      background: var(--blue);
+      color: #fff;
+      border-radius: 10px 10px 2px 10px;
+    }
+
+    .cmsg.them.cbbl,
+    .cmsg.them .cbbl {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px 10px 10px 2px;
+    }
+
+    .cbbl.sys {
+      background: var(--violet-bg);
+      color: var(--violet);
+      border-color: var(--violet-bd);
+      font-style: italic;
+      font-size: 10px;
+    }
+
+    .cbbl.loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot-loader {
+      display: inline-flex;
+      gap: 3px;
+    }
+
+    .dot-loader span {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--muted);
+      animation: dotPulse 1s infinite ease-in-out;
+    }
+
+    .dot-loader span:nth-child(2) {
+      animation-delay: .15s;
+    }
+
+    .dot-loader span:nth-child(3) {
+      animation-delay: .3s;
+    }
+
+    @keyframes dotPulse {
+
+      0%,
+      100% {
+        opacity: .25;
+        transform: translateY(0);
+      }
+
+      50% {
+        opacity: 1;
+        transform: translateY(-1px);
+      }
+    }
+
+    .cmeta {
+      font-size: 9px;
+      color: var(--muted);
+    }
+
+    .chat-inp-row {
+      padding: 7px 9px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 5px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    .chat-mode {
+      width: 122px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text2);
+      font-size: 11px;
+      font-family: var(--font);
+      padding: 6px 8px;
+      outline: none;
+      flex-shrink: 0;
+    }
+
+    .chat-inp {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 12px;
+      padding: 6px 9px;
+      outline: none;
+      resize: none;
+      min-height: 32px;
+      max-height: 72px;
+      line-height: 1.4;
+    }
+
+    .chat-inp:focus {
+      border-color: var(--blue);
+    }
+
+    .chat-inp:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .chat-send {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      background: var(--blue);
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .chat-send:hover {
+      opacity: .85;
+    }
+
+    .chat-send:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+    }
+
+    /* ── ACTION BAR ── */
+    .ab {
+      height: var(--ab-h);
+      flex-shrink: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 14px;
+      gap: 10px;
+    }
+
+    .ab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 13px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text2);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all .12s;
+      white-space: nowrap;
+    }
+
+    .ab-btn:hover {
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    .ab-btn:disabled {
+      opacity: .3;
+      cursor: not-allowed;
+    }
+
+    .ab-btn.approve {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
+      font-weight: 800;
+    }
+
+    .ab-btn.approve:hover {
+      opacity: .88;
+    }
+
+    .ab-btn.approve:disabled {
+      background: var(--muted);
+      border-color: var(--muted);
+      opacity: .5;
+    }
+
+    #drag-shield {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      cursor: col-resize;
+    }
+
+    /* ══ EDIT LAYOUT — topbar additions ══ */
+    .btn-edit-layout {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 11px;
+      border-radius: 7px;
+      border: 1px solid var(--violet-bd);
+      background: var(--violet-bg);
+      color: var(--violet);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all .15s;
+      flex-shrink: 0;
+    }
+
+    .btn-edit-layout:hover {
+      background: var(--violet-bg);
+      border-color: var(--violet);
+      opacity: .85;
+    }
+
+    .edit-topbar-extras {
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .edit-topbar-extras.visible {
+      display: flex;
+    }
+
+    .tb-edit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text2);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all .12s;
+      white-space: nowrap;
+    }
+
+    .tb-edit-btn:hover:not(:disabled) {
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    .tb-edit-btn:disabled {
+      opacity: .3;
+      cursor: not-allowed;
+    }
+
+    .tb-edit-btn.done {
+      border-color: var(--green-bd);
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    .tb-edit-btn.done:hover {
+      background: rgba(22, 163, 74, .15);
+    }
+
+    .tb-edit-btn.cancel {
+      border-color: var(--border);
+      color: var(--text2);
+    }
+
+    .edit-mode-badge {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--amber);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: 3px 9px;
+      border-radius: 99px;
+      background: var(--amber-bg);
+      border: 1px solid var(--amber-bd);
+      animation: editBadgePulse 2.5s ease-in-out infinite;
+    }
+
+    .edit-mode-badge.visible {
+      display: flex;
+    }
+
+    @keyframes editBadgePulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .55
+      }
+    }
+
+    /* canvas edit ring — sits over the entire page content area */
+    #edit-canvas-ring {
+      display: none;
+      position: fixed;
+      inset: 44px 0 0 0;
+      /* below topbar */
+      border: 2px solid rgba(124, 58, 237, .3);
+      pointer-events: none;
+      z-index: 199;
+      animation: ringPulse 3s ease-in-out infinite;
+    }
+
+    #edit-canvas-ring.visible {
+      display: block;
+    }
+
+    @keyframes ringPulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .35
+      }
+    }
+
+    /* ══ FLOATING EDIT PANEL ══ */
+    #float-edit-panel {
+      display: none;
+      position: fixed;
+      width: 330px;
+      min-height: 400px;
+      max-height: 580px;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .25), 0 0 0 1px rgba(124, 58, 237, .12);
+      flex-direction: column;
+      z-index: 9998;
+      overflow: hidden;
+      bottom: 80px;
+      right: 20px;
+      user-select: none;
+    }
+
+    #float-edit-panel.visible {
+      display: flex;
+    }
+
+    #float-edit-panel.is-dragging {
+      box-shadow: 0 28px 72px rgba(0, 0, 0, .35), 0 0 0 2px rgba(124, 58, 237, .3);
+      transition: none;
+    }
+
+    .fep-handle {
+      height: 40px;
+      flex-shrink: 0;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 11px;
+      gap: 8px;
+      cursor: grab;
+      border-radius: 14px 14px 0 0;
+    }
+
+    .fep-handle:active {
+      cursor: grabbing;
+    }
+
+    .fep-grip {
+      display: grid;
+      grid-template-columns: repeat(3, 4px);
+      grid-template-rows: repeat(2, 4px);
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .fep-grip i {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--muted);
+      display: block;
+    }
+
+    .fep-title {
+      flex: 1;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--violet);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .fep-title-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--violet);
+      box-shadow: 0 0 6px var(--violet);
+      animation: editBadgePulse 2s infinite;
+    }
+
+    .fep-min-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .12s;
+      flex-shrink: 0;
+    }
+
+    .fep-min-btn:hover {
+      border-color: var(--border2);
+      color: var(--text2);
+    }
+
+    .fep-chips {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .fep-chip {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text2);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all .12s;
+    }
+
+    .fep-chip:hover {
+      border-color: var(--violet-bd);
+      color: var(--violet);
+      background: var(--violet-bg);
+    }
+
+    .fep-msgs {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .fep-msgs::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .fep-msgs::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    .fep-msg {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .fep-msg.me {
+      align-items: flex-end;
+    }
+
+    .fep-msg.them {
+      align-items: flex-start;
+    }
+
+    .fep-bbl {
+      max-width: 88%;
+      padding: 7px 10px;
+      border-radius: 10px;
+      font-size: 11.5px;
+      line-height: 1.5;
+    }
+
+    .fep-msg.me .fep-bbl {
+      background: var(--violet);
+      color: #fff;
+      border-radius: 10px 10px 2px 10px;
+    }
+
+    .fep-msg.them .fep-bbl {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px 10px 10px 2px;
+    }
+
+    .fep-bbl.fep-sys {
+      background: var(--amber-bg);
+      color: var(--amber);
+      border-color: var(--amber-bd);
+      font-style: italic;
+      font-size: 10.5px;
+    }
+
+    .fep-bbl.fep-ok {
+      background: var(--green-bg);
+      color: var(--green);
+      border-color: var(--green-bd);
+      font-size: 10.5px;
+    }
+
+    .fep-bbl.fep-loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .fep-meta {
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .fep-inp-row {
+      padding: 7px 9px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    .fep-inp {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 12px;
+      padding: 6px 9px;
+      outline: none;
+      resize: none;
+      min-height: 52px;
+      max-height: 120px;
+      line-height: 1.5;
+      transition: border-color .12s;
+    }
+
+    .fep-inp:focus {
+      border-color: var(--violet);
+    }
+
+    .fep-inp:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .fep-send {
+      width: 30px;
+      height: 38px;
+      border-radius: 7px;
+      background: var(--violet);
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: opacity .12s;
+    }
+
+    .fep-send:hover {
+      opacity: .85;
+    }
+
+    .fep-send:disabled {
+      opacity: .3;
+      cursor: not-allowed;
+    }
+
+    .fep-footer {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+      background: var(--surface2);
+      border-radius: 0 0 14px 14px;
+    }
+
+    .fep-save-btn {
+      width: 100%;
+      height: 32px;
+      border-radius: 7px;
+      background: var(--green);
+      border: none;
+      color: #fff;
+      font-family: var(--font);
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: opacity .12s;
+    }
+
+    .fep-save-btn:hover {
+      opacity: .88;
+    }
+
+    /* ── MINIMISED FAB ── */
+    #edit-fab {
+      display: none;
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: var(--violet);
+      border: none;
+      color: #fff;
+      font-size: 17px;
+      box-shadow: 0 6px 20px rgba(124, 58, 237, .45);
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+      transition: transform .15s, box-shadow .15s;
+    }
+
+    #edit-fab.visible {
+      display: flex;
+    }
+
+    #edit-fab:hover {
+      transform: scale(1.08);
+      box-shadow: 0 10px 28px rgba(124, 58, 237, .6);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="shell">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <a href="#" class="tb-back">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        Queue
+      </a>
+      <div class="tb-meta">
+        <div class="tb-pill">
+          <span class="tb-pill-lbl">Job</span>
+          <span class="tb-pill-val">{{ logical_job_name if logical_job_name is defined else "297384_workflow" }}</span>
+        </div>
+        <div class="tb-pill batch">
+          <span class="tb-pill-lbl">Batch</span>
+          <span class="tb-pill-val">{{ job.job_id if job is defined else "-" }}{% if batch_display_name is defined and
+            batch_display_name %} - {{ batch_display_name }}{% endif %}</span>
+        </div>
+      </div>
+      <div class="tb-spacer"></div>
+      <!-- Edit mode badge -->
+      <div class="edit-mode-badge" id="edit-mode-badge">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
+        Editing Layout
+      </div>
+      <!-- Edit mode undo/redo/save/cancel -->
+      <div class="edit-topbar-extras" id="edit-topbar-extras">
+        <button class="tb-edit-btn" id="edit-undo-btn" onclick="editUndo()" disabled title="Undo">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 14 4 9 9 4" />
+            <path d="M20 20v-7a4 4 0 0 0-4-4H4" />
+          </svg>Undo
+        </button>
+        <button class="tb-edit-btn" id="edit-redo-btn" onclick="editRedo()" disabled title="Redo">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 14 20 9 15 4" />
+            <path d="M4 20v-7a4 4 0 0 1 4-4h12" />
+          </svg>Redo
+        </button>
+        <button class="tb-edit-btn cancel" onclick="editCancel()">Cancel</button>
+      </div>
+      <span class="tb-chip">● HITL</span>
+      <!-- Edit Layout entry button -->
+      <button class="btn-edit-layout" id="btn-edit-layout" onclick="enterEditMode()">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
+        Edit Layout
+      </button>
+      <button class="tb-icon" onclick="toggleTheme()" title="Toggle theme">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5" />
+          <path
+            d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- KPI STRIP -->
+    <div class="ctx-strip">
+      <div class="kpi-card">
+        <div class="kpi-label">Actions</div>
+        <div class="kpi-value" id="kpi-actions">{{ hitl_kpi.actions if hitl_kpi is defined else 0 }}</div>
+        <div class="kpi-sub">Open validations</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Completed</div>
+        <div class="kpi-value good" id="kpi-completed">{{ hitl_kpi.completed if hitl_kpi is defined else 0 }}</div>
+        <div class="kpi-sub">Processed documents</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Pending</div>
+        <div class="kpi-value warn" id="kpi-pending">{{ hitl_kpi.pending if hitl_kpi is defined else 0 }}</div>
+        <div class="kpi-sub">Waiting in queue</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Estimated Time</div>
+        <div class="kpi-value" id="kpi-est-time">{{ "%02dm"|format(hitl_kpi.estimated_minutes if hitl_kpi is defined
+          else 0) }}</div>
+        <div class="kpi-sub">To clear active actions</div>
+      </div>
+    </div>
+
+    <!-- PANELS -->
+    <div class="panels" id="panels">
+      <!-- LEFT: read-only PDF -->
+      <div class="panel" id="panel-left" style="width:62%">
+        <div class="panel-head">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            style="color:var(--muted);flex-shrink:0">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          <span class="panel-title" id="left-title">Source PDF</span>
+          <span style="font-size:9px;color:var(--muted);font-family:var(--mono);flex-shrink:0">read-only</span>
+          <button class="collapse-btn" title="Collapse panel" onclick="collapsePanel('left')">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+        </div>
+        <div class="panel-body">
+          <div class="pdf-body">
+            <div class="pg-ctrl">
+              <button class="pg-btn" onclick="openInTab()">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+                Open
+              </button>
+              <div class="pg-nums">
+                <button class="snav" onclick="changePage(-1)"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg></button>
+                <input class="pg-in" type="number" id="pg-in" value="1" min="1" max="3"
+                  onchange="gotoPage(this.value)" />
+                <span class="pg-of">/ <span id="pg-total">3</span></span>
+                <button class="snav" onclick="changePage(1)"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg></button>
+              </div>
+            </div>
+            <div class="pdf-box">
+              <iframe class="pdf-frame" id="left-pdf-frame" src="" title="Source PDF preview"></iframe>
+              <div class="pdf-ph" id="left-pdf-placeholder">
+                <div class="pdf-ph-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg></div>
+                <div style="font-size:12px;font-weight:700;color:var(--text2)">Source PDF</div>
+                <div style="font-size:11px;color:var(--muted);max-width:150px;line-height:1.5">Read-only. Interact via
+                  centre panel highlights.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GUTTER 1 -->
+      <div class="gutter" id="gutter-1" onmousedown="startDrag(event,1)" ondblclick="resetLayout()">
+        <div class="gutter-dots"><span></span><span></span><span></span><span></span></div>
+        <!-- Tab visible when LEFT is collapsed: points right to expand left panel -->
+        <div class="expand-tab tab-r" id="etab-left" title="Expand Source PDF" onclick="expandPanel('left')">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </div>
+        <!-- Tab visible when CENTER is collapsed (seen from left side): points left -->
+        <div class="expand-tab tab-l" id="etab-ctr-l" title="Expand Fields" onclick="expandPanel('center')">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- CENTER: highlights -->
+      <div class="panel collapsed" id="panel-center" style="width:38%">
+        <div class="center-strip">
+          <button class="center-strip-btn" onclick="expandPanel('center')">Extracted Fields Hidden - Click to
+            Expand</button>
+        </div>
+        <div class="panel-head">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            style="color:var(--muted);flex-shrink:0">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+          </svg>
+          <span class="panel-title">Extracted Fields</span>
+          <span style="font-size:9px;color:var(--muted);font-family:var(--mono);flex-shrink:0" id="hl-count">8
+            fields</span>
+          <!-- Centre panel has TWO collapse buttons — collapse left or collapse right -->
+          <button class="collapse-btn" title="Collapse left panel" onclick="collapsePanel('left')"
+            style="margin-left:auto">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <button class="collapse-btn" title="Collapse right panel" onclick="collapsePanel('right')">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </div>
+        <div class="panel-body">
+          <div class="ctr-body">
+            <div class="ctr-hint">
+              <div class="sync-dot"></div>
+              <span>Synced — page <strong id="sync-pg">1</strong>. Click a highlighted region to select a field.</span>
+            </div>
+            <div class="hl-box">
+              <iframe class="hl-iframe" id="ctr-iframe" src="about:blank" title="Fields"></iframe>
+              <div class="hl-layer" id="hl-layer"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GUTTER 2 -->
+      <div class="gutter" id="gutter-2" onmousedown="startDrag(event,2)" ondblclick="resetLayout()">
+        <div class="gutter-dots"><span></span><span></span><span></span><span></span></div>
+        <!-- Tab visible when RIGHT is collapsed: points left to expand right panel -->
+        <div class="expand-tab tab-l" id="etab-right" title="Expand Attributes" onclick="expandPanel('right')">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </div>
+        <!-- Tab visible when CENTER is collapsed (seen from right side): points right -->
+        <div class="expand-tab tab-r" id="etab-ctr-r" title="Expand Fields" onclick="expandPanel('center')">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- RIGHT: Attribute Verification -->
+      <div class="panel" id="panel-right" style="width:26%">
+        <div class="panel-head">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            style="color:var(--muted);flex-shrink:0">
+            <path d="M9 11l3 3L22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+          <span class="panel-title" id="right-title">Attribute Verify</span>
+          <span style="font-size:9px;color:var(--muted);font-family:var(--mono);flex-shrink:0" id="attr-count">5
+            shown</span>
+          <button class="collapse-btn" title="Collapse panel" onclick="collapsePanel('right')" style="margin-left:auto">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </div>
+        <div class="panel-body">
+          <div class="attr-panel-body">
+
+            <!-- Toolbar: add attribute dropdown -->
+            <div class="attr-toolbar">
+              <span class="attr-toolbar-label">Lease Attributes</span>
+              <select class="attr-add-select" id="attr-add-select">
+                <option value="">+ Add field</option>
+              </select>
+            </div>
+
+            <!-- Scrollable attribute list -->
+            <div class="attr-list" id="attr-list"></div>
+
+            <!-- Footer summary -->
+            <div class="attr-summary" id="attr-summary">
+              <span class="attr-sum-pill c" id="attr-sum-c">0 confirmed</span>
+              <span class="attr-sum-pill e" id="attr-sum-e">0 edited</span>
+              <span class="attr-sum-spacer"></span>
+              <button class="attr-save-btn" onclick="saveAttrSnapshot()">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- hidden stubs so existing JS refs don't break -->
+        <div id="pdf-detail-name" style="display:none"></div>
+        <div id="pdf-detail-supervisor" style="display:none"></div>
+        <div id="f-sel" style="display:none">
+          <div id="f-lbl"></div>
+          <div id="f-pill"></div>
+          <div id="f-val"></div>
+          <div id="f-page"></div>
+          <div id="f-conf"></div>
+          <div id="f-sup"></div>
+          <div id="f-hint"></div>
+          <button id="f-cfm-btn"></button><button id="f-rst-btn"></button>
+        </div>
+        <div id="chat-cmds" style="display:none"></div>
+        <div id="chat-msgs" style="display:none"></div>
+        <textarea id="chat-inp" style="display:none"></textarea>
+        <button id="chat-send" style="display:none"></button>
+        <span id="chat-ctx" style="display:none"></span>
+        <select id="chat-mode" style="display:none">
+          <option value="default">Default</option>
+          <option value="llm">LLM</option>
+        </select>
+      </div>
+
+    </div><!-- end panels -->
+
+    <!-- ACTION BAR -->
+    <div class="ab">
+      <button class="ab-btn" id="btn-prev" onclick="navPDF(-1)" disabled>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>Prev
+      </button>
+      <button class="ab-btn" onclick="skipPDF()">Skip</button>
+      <button class="ab-btn approve" id="btn-approve" onclick="approvePDF()" disabled>
+        Approve
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
+
+  </div><!-- end shell -->
+  <div id="drag-shield"></div>
+
+  <!-- ══ EDIT MODE CANVAS RING ══ -->
+  <div id="edit-canvas-ring"></div>
+
+  <!-- ══ FLOATING EDIT PANEL ══ -->
+  <div id="float-edit-panel">
+    <div class="fep-handle" id="fep-handle">
+      <div class="fep-grip"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="fep-title">
+        <div class="fep-title-dot"></div>XAPP · Layout Assistant
+      </div>
+      <button class="fep-min-btn" onclick="minimiseFep()" title="Minimise">&#8211;</button>
+    </div>
+    <div class="fep-chips">
+      <button class="fep-chip" onclick="fepQuick('Change theme to dark')">🌙 Dark theme</button>
+      <button class="fep-chip" onclick="fepQuick('Add a new KPI card showing Average Confidence score')">➕ Add KPI
+        card</button>
+      <button class="fep-chip" onclick="fepQuick('Make the PDF panel wider, set it to 75%')">⟺ Wider PDF</button>
+    </div>
+    <div class="fep-msgs" id="fep-msgs"></div>
+    <div class="fep-inp-row">
+      <textarea class="fep-inp" id="fep-inp"
+        placeholder="Describe a layout change — e.g. 'add a KPI card for Average Confidence' or 'switch to dark theme'"
+        rows="2" onkeydown="fepKey(event)"
+        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <button class="fep-send" id="fep-send" onclick="fepSend()" title="Send">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="22" y1="2" x2="11" y2="13" />
+          <polygon points="22 2 15 22 11 13 2 9 22 2" />
+        </svg>
+      </button>
+    </div>
+    <div class="fep-footer">
+      <button class="fep-save-btn" onclick="editDone()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+        Save Layout
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ MINIMISED FAB ══ -->
+  <button id="edit-fab" onclick="restoreFep()" title="Open Layout Editor">&#9998;</button>
+
+  <script>
+    /* ══ DATA ══ */
+    const HITL_KPI = {{ (hitl_kpi if hitl_kpi is defined else { "actions": 0, "completed": 0, "pending": 0, "estimated_minutes": 0 }) | tojson }};
+    const PDF_DOCS = {{ (pdf_documents if pdf_documents is defined else[]) | tojson }};
+    const SELECTED_PDF_URL = {{ (selected_document_url if selected_document_url is defined else "") | tojson }};
+    const JOB_ID = {{ (job.job_id if job is defined else "job") | tojson }};
+    const WORKFLOW_ID = {{ (job.workflow_id if job is defined else "") | tojson }};
+    const STEP_NAME = {{ (step.step_name if step is defined else "") | tojson }};
+    const CURRENT_USER = {{ (user if user is defined else "member1") | tojson }};
+    const EMBED_MODE = {{ (embedded if embedded is defined else false) | tojson }};
+    const JOB_STATUS = {{ (job.status if job is defined else "active") | tojson }};
+    const REVIEW_MODE = {{ (review_mode if review_mode is defined else false) | tojson }};
+    const LAYOUT_STORE_KEY = `xapp_layout_actions:${WORKFLOW_ID}:${STEP_NAME}`;
+    const BATCH_SUPERVISOR = {{ (batch_supervisor_name if batch_supervisor_name is defined else "") | tojson }};
+    function resolveActivePdf() {
+      if (Array.isArray(PDF_DOCS) && PDF_DOCS.length) {
+        const byUrl = PDF_DOCS.find(d => d.url === SELECTED_PDF_URL);
+        return byUrl || PDF_DOCS[0];
+      }
+      return { name: `${JOB_ID}.pdf`, url: '#', modified: '-', size_kb: '-' };
+    }
+    const ACTIVE_PDF = resolveActivePdf();
+    const DOCS = [{
+      id: 1,
+      name: ACTIVE_PDF.name || `${JOB_ID}.pdf`,
+      status: JOB_STATUS === 'completed' ? 'confirmed' : 'pending',
+      pages: 1,
+      date: new Date(),
+      supervisor: false,
+      fd: JOB_STATUS === 'completed' ? 8 : 0,
+      ft: 8,
+      url: ACTIVE_PDF.url || '#',
+      modified: ACTIVE_PDF.modified || '-',
+      size_kb: ACTIVE_PDF.size_kb || '-'
+    }];
+
+    const FM = [
+      { id: 'f1', label: 'Employee Name', value: 'John Michael Smith', page: 1, conf: 98, sup: false },
+      { id: 'f2', label: 'Employee ID', value: 'EMP-2024-0847', page: 1, conf: 94, sup: false },
+      { id: 'f3', label: 'Department', value: 'Engineering — Platform', page: 1, conf: 91, sup: true },
+      { id: 'f4', label: 'Gross Pay', value: '$ 8,450.00', page: 2, conf: 99, sup: false },
+      { id: 'f5', label: 'Net Pay', value: '$ 6,122.30', page: 2, conf: 99, sup: false },
+      { id: 'f6', label: 'Tax Withheld', value: '$ 2,327.70', page: 2, conf: 97, sup: false },
+      { id: 'f7', label: 'Pay Period', value: 'Mar 01–31, 2026', page: 1, conf: 96, sup: false },
+      { id: 'f8', label: 'Bank Account', value: '****4821', page: 3, conf: 89, sup: true },
+    ];
+    const CRD = {
+      f1: { top: '7%', left: '8%', w: '58%', h: '5.5%' },
+      f2: { top: '14%', left: '8%', w: '38%', h: '5.5%' },
+      f3: { top: '21%', left: '8%', w: '48%', h: '5.5%' },
+      f4: { top: '44%', left: '52%', w: '32%', h: '5.5%' },
+      f5: { top: '51%', left: '52%', w: '32%', h: '5.5%' },
+      f6: { top: '58%', left: '52%', w: '32%', h: '5.5%' },
+      f7: { top: '28%', left: '8%', w: '44%', h: '5.5%' },
+      f8: { top: '71%', left: '8%', w: '34%', h: '5.5%' },
+    };
+    const FCHATS = {};
+    FM.forEach(f => { FCHATS[f.id] = []; });
+    const GCHATS = [];
+    const DEFAULT_COMMANDS = [
+      'increase left width',
+      'decrease left width',
+      'set left width to 85%',
+      'fit pdf to width',
+      'collapse center',
+      'expand center',
+      'reset layout'
+    ];
+    let pdfViewMode = 'page-width';
+
+    /* ══ STATE ══ */
+    let curPDF = 0, activeField = null, curPage = 1, totalPages = 1;
+    let fStates = {}, fVals = {};
+    const savedW = { left: null, center: null, right: null };
+
+    function init() {
+      FM.forEach(f => { fStates[f.id] = 'pending'; fVals[f.id] = f.value; });
+      if (DOCS[0].status === 'confirmed') { FM.forEach(f => { fStates[f.id] = 'confirmed'; }); }
+      document.getElementById('pg-total').textContent = String(totalPages);
+      renderCommandChips();
+      renderPDFs(); renderHLs(); updateStats(); updateAB();
+      updateCtxStrip(); showChatGeneral(); syncExpandTabs();
+      attrInit();
+      if (REVIEW_MODE) {
+        const editBtn = document.getElementById('btn-edit-layout');
+        if (editBtn) editBtn.style.display = 'none';
+        const btn = document.getElementById('btn-approve');
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Review Only';
+        }
+      }
+    }
+
+    /* ══ HELPERS ══ */
+    function sCol(s) { return { confirmed: '#16a34a', pending: '#94a3b8', edited: '#d97706' }[s] || '#94a3b8'; }
+    function ts() { return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+
+    /* ══ CONTEXT STRIP ══ */
+    function updateCtxStrip() {
+      const actions = Number(HITL_KPI.actions || 0);
+      const completed = Number(HITL_KPI.completed || 0);
+      const pending = Number(HITL_KPI.pending || 0);
+      const estMinutes = Number(HITL_KPI.estimated_minutes || 0);
+      document.getElementById('kpi-actions').textContent = String(actions);
+      document.getElementById('kpi-completed').textContent = String(completed);
+      document.getElementById('kpi-pending').textContent = String(pending);
+      document.getElementById('kpi-est-time').textContent = `${String(Math.max(0, estMinutes)).padStart(2, '0')}m`;
+    }
+
+    /* ══ CURRENT PDF ══ */
+    function renderPDFs() {
+      const d = DOCS[0];
+      document.getElementById('pdf-detail-name').textContent = d.name;
+      document.getElementById('pdf-detail-supervisor').textContent = BATCH_SUPERVISOR || '-';
+      document.getElementById('left-title').textContent = d.name;
+      const frame = document.getElementById('left-pdf-frame');
+      const ph = document.getElementById('left-pdf-placeholder');
+      if (frame) {
+        frame.src = buildPdfUrl(d.url);
+      }
+      if (ph) {
+        ph.style.display = (d.url && d.url !== '#') ? 'none' : 'flex';
+      }
+    }
+    function buildPdfUrl(url) {
+      if (!url || url === '#') return 'about:blank';
+      const clean = String(url).split('#')[0];
+      if (pdfViewMode === 'page-width') return `${clean}#zoom=page-width`;
+      if (pdfViewMode === 'fit-h') return `${clean}#view=FitH`;
+      return clean;
+    }
+    function selectPDF(idx) {
+      if (idx !== 0) return;
+      curPDF = 0;
+      FM.forEach(f => { fStates[f.id] = 'pending'; fVals[f.id] = f.value; });
+      FM.forEach(f => { FCHATS[f.id] = []; });
+      activeField = null;
+      const d = DOCS[0];
+      document.getElementById('left-title').textContent = d.name;
+      renderPDFs(); renderHLs(); updateStats(); updateAB(); updateCtxStrip();
+      hideFieldDetail(); showChatGeneral();
+    }
+    function navPDF() { return; }
+    function skipPDF() { return; }
+    function approvePDF() {
+      if (REVIEW_MODE) return;
+      const btn = document.getElementById('btn-approve');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Approving...';
+      }
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/member/batch/' + encodeURIComponent(JOB_ID) + '/complete';
+
+      const userInput = document.createElement('input');
+      userInput.type = 'hidden';
+      userInput.name = 'user';
+      userInput.value = CURRENT_USER;
+      form.appendChild(userInput);
+
+      const embedInput = document.createElement('input');
+      embedInput.type = 'hidden';
+      embedInput.name = 'embed';
+      embedInput.value = EMBED_MODE ? '1' : '0';
+      form.appendChild(embedInput);
+
+      document.body.appendChild(form);
+      form.submit();
+    }
+
+    /* ══ HIGHLIGHTS ══ */
+    function renderHLs() {
+      document.getElementById('hl-layer').innerHTML = FM.map(f => {
+        const c = CRD[f.id], s = fStates[f.id];
+        return `<div class="hl-rect ${s} ${activeField === f.id ? 'active' : ''}"
+      style="top:${c.top};left:${c.left};width:${c.w};height:${c.h}"
+      onclick="selectField('${f.id}')" title="${f.label}">
+      <span class="hl-lbl">${f.label}</span>
+    </div>`;
+      }).join('');
+    }
+
+    /* ══ FIELD SELECTION ══ */
+    function selectField(fid) {
+      if (activeField === fid) { activeField = null; renderHLs(); hideFieldDetail(); showChatGeneral(); return; }
+      activeField = fid; renderHLs(); showFieldDetail(fid); showFieldChat(fid);
+    }
+    function showFieldDetail(fid) {
+      const f = FM.find(x => x.id === fid), s = fStates[fid], v = fVals[fid];
+      const sf = document.getElementById('f-sel'); sf.style.display = 'block';
+      document.getElementById('f-lbl').textContent = f.label;
+      document.getElementById('f-val').textContent = v;
+      document.getElementById('f-val').className = 'f-val' + (s === 'edited' ? ' edited' : '');
+      const pill = document.getElementById('f-pill');
+      pill.textContent = s === 'confirmed' ? '✓ Confirmed' : s === 'edited' ? '✎ Edited' : '● Pending';
+      pill.className = 'f-pill' + (s === 'confirmed' ? ' confirmed' : s === 'edited' ? ' edited' : '');
+      document.getElementById('f-page').textContent = `p.${f.page}`;
+      document.getElementById('f-conf').textContent = `${f.conf}% conf`;
+      document.getElementById('f-sup').innerHTML = f.sup ? `<span class="sup-tag" style="font-size:8px">★ Priority</span>` : '';
+      const cb = document.getElementById('f-cfm-btn'), rb = document.getElementById('f-rst-btn');
+      cb.textContent = s === 'confirmed' ? '✓ Confirmed' : '✓ Confirm';
+      cb.classList.toggle('done', s === 'confirmed');
+      rb.style.display = s !== 'pending' ? 'inline-block' : 'none';
+      document.getElementById('f-hint').innerHTML = s === 'confirmed' ?
+        'Confirmed. Chat below to change the value.' :
+        `Use the chat to <strong>suggest a change</strong> — XAPP Chat will apply it.`;
+      document.getElementById('right-title').textContent = f.label;
+    }
+    function hideFieldDetail() {
+      const sf = document.getElementById('f-sel');
+      if (sf) sf.style.display = 'none';
+      document.getElementById('right-title').textContent = 'Review';
+    }
+    function confirmSel() {
+      if (!activeField) return;
+      fStates[activeField] = 'confirmed';
+      renderHLs(); updateStats(); updateAB(); updateCtxStrip(); showFieldDetail(activeField);
+    }
+    function resetSel() {
+      if (!activeField) return;
+      fStates[activeField] = 'pending'; fVals[activeField] = FM.find(x => x.id === activeField).value;
+      renderHLs(); updateStats(); updateAB(); updateCtxStrip(); showFieldDetail(activeField);
+    }
+
+    /* ══ STATS ══ */
+    function updateStats() {
+      const c = Object.values(fStates).filter(s => s === 'confirmed').length;
+      const e = Object.values(fStates).filter(s => s === 'edited').length;
+      const stT = document.getElementById('st-t');
+      const stC = document.getElementById('st-c');
+      const stE = document.getElementById('st-e');
+      const stP = document.getElementById('st-p');
+      if (stT) stT.textContent = FM.length;
+      if (stC) stC.textContent = c;
+      if (stE) stE.textContent = e;
+      if (stP) stP.textContent = FM.length - c - e;
+    }
+    function updateAB() {
+      const rv = Object.values(fStates).filter(s => s !== 'pending').length, t = FM.length;
+      const pd = DOCS.filter(d => d.status === 'confirmed').length;
+      const abFields = document.getElementById('ab-fields');
+      const abPdfs = document.getElementById('ab-pdfs');
+      const abFill = document.getElementById('ab-fill');
+      if (abFields) abFields.textContent = `${rv} / ${t} fields reviewed`;
+      if (abPdfs) abPdfs.textContent = `${pd} / ${DOCS.length} PDFs done`;
+      if (abFill) abFill.style.width = Math.round(pd / DOCS.length * 100) + '%';
+      const centerCollapsed = document.getElementById('panel-center')?.classList.contains('collapsed');
+      document.getElementById('btn-approve').disabled = REVIEW_MODE ? true : (centerCollapsed ? false : (rv < t));
+      document.getElementById('btn-prev').disabled = curPDF === 0;
+    }
+
+    /* ══ CHAT ══ */
+    function showChatGeneral() {
+      const inp = document.getElementById('chat-inp');
+      if (REVIEW_MODE) {
+        inp.placeholder = 'Review mode';
+        inp.disabled = true;
+        document.getElementById('chat-send').disabled = true;
+      } else {
+        inp.placeholder = 'Type a message or layout command...';
+        inp.disabled = false;
+        document.getElementById('chat-send').disabled = false;
+      }
+      if (GCHATS.length === 0) {
+        GCHATS.push({ r: 'mojo', t: 'Use this chat to adjust the layout and PDF view.', time: ts() });
+      }
+      renderGeneralMsgs();
+    }
+    function renderCommandChips() {
+      const el = document.getElementById('chat-cmds');
+      if (!el) return;
+      el.innerHTML = DEFAULT_COMMANDS.map(c => `<button class="cmd-chip" onclick="runQuickCmd('${c.replace(/'/g, "&#39;")}')">${c}</button>`).join('');
+    }
+    function runQuickCmd(cmdText) {
+      const inp = document.getElementById('chat-inp');
+      if (inp) inp.value = cmdText;
+      sendChat();
+    }
+    function clampPct(v) { return Math.max(45, Math.min(90, Math.round(v))); }
+    function setLeftWidthPercent(pct) {
+      const pL = document.getElementById('panel-left');
+      const pC = document.getElementById('panel-center');
+      const pR = document.getElementById('panel-right');
+      if (pL.classList.contains('collapsed')) pL.classList.remove('collapsed');
+      if (pR.classList.contains('collapsed')) pR.classList.remove('collapsed');
+      const total = Math.max(0, document.getElementById('panels').offsetWidth - (GUTTER_W * 2));
+      const cW = pC.classList.contains('collapsed') ? Math.max(24, pC.offsetWidth || 30) : panelWidth(pC);
+      const lrTotal = Math.max(0, total - cW);
+      const targetLeft = Math.round(lrTotal * (clampPct(pct) / 100));
+      const minLR = Math.min(MIN_PANEL, Math.max(64, Math.floor(lrTotal / 2) - 10));
+      const nL = Math.max(minLR, Math.min(targetLeft, Math.max(minLR, lrTotal - minLR)));
+      pL.style.width = nL + 'px';
+      pR.style.width = Math.max(minLR, lrTotal - nL) + 'px';
+      normalizeLayout('left');
+      saveLayout();
+      return Math.round((nL / Math.max(1, lrTotal)) * 100);
+    }
+    function parseLayoutCommand(raw) {
+      const text = (raw || '').toLowerCase().trim();
+      let m = text.match(/set\s+left\s+width\s+to\s+(\d{1,3})\s*%/);
+      if (m) return { type: 'set_left_pct', value: parseInt(m[1], 10) };
+      if (/increase\s+left\s+width|make\s+left\s+(?:bigger|wider)|wider\s+left/.test(text)) return { type: 'delta_left_pct', value: +8 };
+      if (/decrease\s+left\s+width|make\s+left\s+smaller|narrower\s+left/.test(text)) return { type: 'delta_left_pct', value: -8 };
+      if (/fit\s*pdf\s*to\s*width|fit\s*to\s*width/.test(text)) return { type: 'fit_pdf_width' };
+      if (/collapse\s+center|hide\s+center|hide\s+extracted/.test(text)) return { type: 'collapse_center' };
+      if (/expand\s+center|show\s+center|show\s+extracted/.test(text)) return { type: 'expand_center' };
+      if (/reset\s+layout|default\s+layout/.test(text)) return { type: 'reset_layout' };
+      return null;
+    }
+    function applyLayoutCommand(cmd) {
+      const pL = document.getElementById('panel-left');
+      const pC = document.getElementById('panel-center');
+      const pR = document.getElementById('panel-right');
+      const total = Math.max(0, document.getElementById('panels').offsetWidth - (GUTTER_W * 2));
+      const cW = pC.classList.contains('collapsed') ? Math.max(24, pC.offsetWidth || 30) : panelWidth(pC);
+      const lrTotal = Math.max(1, total - cW);
+      const curPct = Math.round(((panelWidth(pL) || 0) / lrTotal) * 100);
+      if (cmd.type === 'set_left_pct') {
+        const pct = setLeftWidthPercent(cmd.value);
+        return `Updated left panel width to ${pct}%.`;
+      }
+      if (cmd.type === 'delta_left_pct') {
+        const pct = setLeftWidthPercent(curPct + cmd.value);
+        return `Updated left panel width to ${pct}%.`;
+      }
+      if (cmd.type === 'fit_pdf_width') {
+        pdfViewMode = 'page-width';
+        renderPDFs();
+        return 'PDF view set to fit width.';
+      }
+      if (cmd.type === 'collapse_center') {
+        if (!pC.classList.contains('collapsed')) collapsePanel('center');
+        return 'Extracted Fields pane collapsed.';
+      }
+      if (cmd.type === 'expand_center') {
+        if (pC.classList.contains('collapsed')) expandPanel('center');
+        return 'Extracted Fields pane expanded.';
+      }
+      if (cmd.type === 'reset_layout') {
+        resetLayout();
+        return 'Layout reset to default.';
+      }
+      return 'I could not apply that command.';
+    }
+    async function resolveLlmCommand(text) {
+      try {
+        const resp = await fetch('/api/chat-ui-command', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        const data = await resp.json();
+        if (!data || !data.ok) return { ok: false, message: (data && data.message) || 'LLM command failed.' };
+        return { ok: true, action: data.action };
+      } catch (e) {
+        return { ok: false, message: 'Unable to reach LLM command service.' };
+      }
+    }
+    function renderGeneralMsgs() {
+      const el = document.getElementById('chat-msgs');
+      el.innerHTML = GCHATS.map(m => {
+        const body = m.html ? m.t : `<div class="cbbl">${m.t}</div>`;
+        return `<div class="cmsg ${m.r === 'me' ? 'me' : 'them'}">${body}<div class="cmeta">${m.r === 'me' ? 'You' : 'XAPP Chat'} · ${m.time}</div></div>`;
+      }).join('');
+      el.scrollTop = el.scrollHeight;
+    }
+    function setChatBusy(busy) {
+      const inp = document.getElementById('chat-inp');
+      const btn = document.getElementById('chat-send');
+      if (inp) inp.disabled = busy;
+      if (btn) btn.disabled = busy;
+    }
+    function pushLlmLoader() {
+      const id = `ld_${Date.now()}`;
+      GCHATS.push({
+        id,
+        r: 'mojo',
+        t: '<div class="cbbl loading">Processing command <span class="dot-loader"><span></span><span></span><span></span></span></div>',
+        time: ts(),
+        html: true
+      });
+      renderGeneralMsgs();
+      return id;
+    }
+    function replaceLlmLoader(id, text) {
+      const idx = GCHATS.findIndex(m => m.id === id);
+      if (idx >= 0) GCHATS[idx] = { r: 'mojo', t: text, time: ts() };
+      else GCHATS.push({ r: 'mojo', t: text, time: ts() });
+      renderGeneralMsgs();
+    }
+    function showFieldChat(fid) {
+      const f = FM.find(x => x.id === fid);
+      const inp = document.getElementById('chat-inp');
+      inp.placeholder = `Suggest a change to "${f.label}"…`; inp.disabled = false;
+      document.getElementById('chat-send').disabled = false;
+      if (FCHATS[fid].length === 0) {
+        FCHATS[fid].push({ r: 'mojo', t: `I'm looking at <strong>${f.label}</strong>. Current value: <code>${fVals[fid]}</code>. Tell me what it should be.`, time: ts() });
+      }
+      renderChatMsgs(fid); inp.focus();
+    }
+    function renderChatMsgs(fid) {
+      const el = document.getElementById('chat-msgs');
+      el.innerHTML = FCHATS[fid].map(m => {
+        if (m.r === 'sys') return `<div class="cmsg them"><div class="cbbl sys">${m.t}</div></div>`;
+        return `<div class="cmsg ${m.r === 'me' ? 'me' : 'them'}"><div class="cbbl">${m.t}</div><div class="cmeta">${m.r === 'me' ? 'You' : 'XAPP Chat'} · ${m.time}</div></div>`;
+      }).join('');
+      el.scrollTop = el.scrollHeight;
+    }
+    function chatKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } }
+    async function sendChat() {
+      const inp = document.getElementById('chat-inp'), txt = inp.value.trim(); if (!txt) return;
+      const t = ts();
+      inp.value = ''; inp.style.height = 'auto';
+      if (!activeField) {
+        GCHATS.push({ r: 'me', t: txt, time: t });
+        renderGeneralMsgs();
+        const mode = (document.getElementById('chat-mode') || {}).value || 'default';
+        if (mode === 'llm') {
+          setChatBusy(true);
+          const lid = pushLlmLoader();
+          const llm = await resolveLlmCommand(txt);
+          if (llm.ok && llm.action) {
+            const msg = applyLayoutCommand(llm.action);
+            replaceLlmLoader(lid, msg);
+          } else {
+            replaceLlmLoader(lid, llm.message || 'LLM mode could not interpret that command.');
+          }
+          setChatBusy(false);
+          return;
+        }
+        const cmd = parseLayoutCommand(txt);
+        if (cmd) {
+          const msg = applyLayoutCommand(cmd);
+          GCHATS.push({ r: 'mojo', t: msg, time: ts() });
+        } else {
+          GCHATS.push({ r: 'mojo', t: 'Try commands like: "increase left width", "set left width to 85%", "fit pdf to width", "collapse center", "expand center", or "reset layout".', time: ts() });
+        }
+        renderGeneralMsgs();
+        return;
+      }
+      const fid = activeField;
+      FCHATS[fid].push({ r: 'me', t: txt, time: t });
+      renderChatMsgs(fid);
+      setTimeout(() => mojoReply(fid, txt), 500);
+    }
+    function mojoReply(fid, userTxt) {
+      const f = FM.find(x => x.id === fid), t = ts();
+      const pats = [/(?:change|update|set|make)\s+(?:it\s+)?to\s+(.+)/i, /(?:should be|it(?:'s| is))\s+(.+)/i, /^([^?]{3,60})$/];
+      let nv = null;
+      for (const p of pats) { const m = userTxt.match(p); if (m) { const c = m[1].trim().replace(/['"]/g, ''); if (c.length > 0 && c.length < 80) { nv = c; break; } } }
+      if (nv) {
+        const old = fVals[fid]; fVals[fid] = nv; fStates[fid] = 'edited';
+        FCHATS[fid].push({ r: 'mojo', t: `Updated <strong>${f.label}</strong>:<br><del style="opacity:.5">${old}</del> → <strong>${nv}</strong>`, time: t });
+        FCHATS[fid].push({ r: 'sys', t: 'Value updated. Confirm when ready.', time: t });
+        renderHLs(); updateStats(); updateAB(); updateCtxStrip(); showFieldDetail(fid);
+      } else {
+        const rep = [
+          `To apply a change, say <em>"Change to [value]"</em> or just type the new value.`,
+          `What should <strong>${f.label}</strong> be?`,
+          `Tell me the correct value and I'll update it right away.`
+        ];
+        FCHATS[fid].push({ r: 'mojo', t: rep[FCHATS[fid].length % rep.length], time: t });
+      }
+      renderChatMsgs(fid);
+    }
+
+    /* ══ PAGE NAV ══ */
+    function changePage(d) { const n = Math.max(1, Math.min(curPage + d, totalPages)); curPage = n; document.getElementById('pg-in').value = n; document.getElementById('sync-pg').textContent = n; }
+    function gotoPage(v) { const n = Math.max(1, Math.min(parseInt(v) || 1, totalPages)); curPage = n; document.getElementById('pg-in').value = n; document.getElementById('sync-pg').textContent = n; }
+    function openInTab() { window.open(DOCS[0]?.url || '#', '_blank'); }
+
+    /* ══ COLLAPSE / EXPAND ══ */
+    /*
+      When a panel collapses to width:0, its adjacent gutter shows an expand tab.
+      The tab is a child of the gutter div. Because the gutter has overflow:visible,
+      the tab (which is positioned absolute outside the 6px gutter) is fully visible
+      and clickable.
+    
+      Tab placement:
+        gutter-1  left-collapsed  → tab-r (extends into center panel area)
+        gutter-1  center-collapsed → tab-l (extends into left panel area, but left is visible)
+        gutter-2  right-collapsed  → tab-l (extends into center panel area)
+        gutter-2  center-collapsed → tab-r (extends into right panel area)
+    */
+    function syncExpandTabs() {
+      const lc = document.getElementById('panel-left').classList.contains('collapsed');
+      const cc = document.getElementById('panel-center').classList.contains('collapsed');
+      const rc = document.getElementById('panel-right').classList.contains('collapsed');
+
+      // gutter-1 tabs
+      show('etab-left', lc && !cc);        // left collapsed → tab-r points into center
+      show('etab-ctr-l', !lc && cc);        // center collapsed, left visible → tab-l points left
+
+      // gutter-2 tabs
+      show('etab-right', rc && !cc);        // right collapsed → tab-l points into center
+      show('etab-ctr-r', !rc && cc);        // center collapsed, right visible → tab-r points right
+
+      function show(id, visible) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = visible ? 'flex' : 'none';
+      }
+    }
+
+    const GUTTER_W = 6;
+    const MIN_PANEL = 140;
+    function panelRefs() {
+      return {
+        wrap: document.getElementById('panels'),
+        l: document.getElementById('panel-left'),
+        c: document.getElementById('panel-center'),
+        r: document.getElementById('panel-right')
+      };
+    }
+    function panelWidth(el) { return parseInt(el.style.width, 10) || el.offsetWidth || 0; }
+    function clamp(v, min, max) { return Math.max(min, Math.min(v, max)); }
+    function normalizeLayout(prefer = 'center') {
+      const { wrap, l, c, r } = panelRefs();
+      const total = Math.max(0, wrap.offsetWidth - (GUTTER_W * 2)); // 2 gutters
+      const lc = l.classList.contains('collapsed');
+      const cc = c.classList.contains('collapsed');
+      const rc = r.classList.contains('collapsed');
+      const visible = [l, c, r].filter(p => !p.classList.contains('collapsed'));
+      const minFor = (n) => Math.min(MIN_PANEL, Math.max(64, Math.floor(total / Math.max(n, 1)) - 10));
+      if (visible.length === 0) {
+        c.classList.remove('collapsed');
+        c.style.width = total + 'px';
+        syncExpandTabs(); return;
+      }
+      if (visible.length === 1) {
+        visible[0].style.width = total + 'px';
+        syncExpandTabs(); return;
+      }
+      if (visible.length === 2) {
+        const min2 = minFor(2);
+        const a = visible[0], b = visible[1];
+        const aW = panelWidth(a), bW = panelWidth(b);
+        const na = clamp(aW, min2, Math.max(min2, total - min2));
+        const nb = Math.max(min2, total - na);
+        a.style.width = na + 'px';
+        b.style.width = nb + 'px';
+        syncExpandTabs(); return;
+      }
+      // all 3 visible
+      const min3 = minFor(3);
+      let lw = panelWidth(l), cw = panelWidth(c), rw = panelWidth(r);
+      let sum = lw + cw + rw;
+      if (sum <= 0) {
+        lw = Math.round(total * 0.48);
+        rw = Math.round(total * 0.26);
+        cw = Math.max(min3, total - lw - rw);
+        sum = lw + cw + rw;
+      }
+      if (sum !== total) {
+        const diff = total - sum;
+        if (prefer === 'left') lw += diff;
+        else if (prefer === 'right') rw += diff;
+        else cw += diff;
+      }
+      lw = Math.max(min3, lw);
+      cw = Math.max(min3, cw);
+      rw = Math.max(min3, rw);
+      const over = lw + cw + rw - total;
+      if (over > 0) {
+        if (prefer === 'left') lw = Math.max(min3, lw - over);
+        else if (prefer === 'right') rw = Math.max(min3, rw - over);
+        else cw = Math.max(min3, cw - over);
+      }
+      const finalDiff = total - (lw + cw + rw);
+      cw = Math.max(min3, cw + finalDiff);
+      l.style.width = lw + 'px';
+      c.style.width = cw + 'px';
+      r.style.width = rw + 'px';
+      syncExpandTabs();
+    }
+
+    function collapsePanel(which) {
+      const p = document.getElementById(`panel-${which}`);
+      if (p.classList.contains('collapsed')) return;
+      savedW[which] = p.offsetWidth;
+      p.style.width = p.offsetWidth + 'px'; // fix width before transition
+      requestAnimationFrame(() => {
+        p.classList.add('collapsed');
+        normalizeLayout(which === 'left' ? 'center' : which === 'right' ? 'center' : 'right');
+        saveLayout();
+      });
+    }
+    function expandPanel(which) {
+      const p = document.getElementById(`panel-${which}`);
+      if (!p.classList.contains('collapsed')) return;
+      p.classList.remove('collapsed');
+      const sw = savedW[which];
+      if (sw) {
+        p.style.width = sw + 'px';
+      } else {
+        p.style.width = (MIN_PANEL + 40) + 'px';
+      }
+      normalizeLayout(which === 'left' ? 'left' : which === 'right' ? 'right' : 'center');
+      saveLayout();
+    }
+
+    /* ══ DRAG ══ */
+    let dragging = null;
+    function startDrag(e, g) {
+      e.preventDefault(); dragging = g;
+      document.getElementById('drag-shield').style.display = 'block';
+      document.getElementById(`gutter-${g}`).classList.add('drag');
+      document.addEventListener('mousemove', onDrag);
+      document.addEventListener('mouseup', stopDrag);
+    }
+    function onDrag(e) {
+      if (!dragging) return;
+      const { wrap, l: pL, c: pC, r: pR } = panelRefs();
+      const tot = Math.max(0, wrap.offsetWidth - (GUTTER_W * 2));
+      const rect = wrap.getBoundingClientRect(), mx = e.clientX - rect.left;
+      if (pC.classList.contains('collapsed')) {
+        const cW = Math.max(24, pC.offsetWidth || 30);
+        const lrTot = Math.max(0, tot - cW);
+        const min2 = Math.min(MIN_PANEL, Math.max(64, Math.floor(lrTot / 2) - 10));
+        if (dragging === 1) {
+          const nL = clamp(mx, min2, Math.max(min2, lrTot - min2));
+          const nR = Math.max(min2, lrTot - nL);
+          pL.style.width = nL + 'px';
+          pR.style.width = nR + 'px';
+        } else {
+          const nR = clamp(tot - mx, min2, Math.max(min2, lrTot - min2));
+          const nL = Math.max(min2, lrTot - nR);
+          pL.style.width = nL + 'px';
+          pR.style.width = nR + 'px';
+        }
+        saveLayout();
+        return;
+      }
+      if (dragging === 1) {
+        if (pL.classList.contains('collapsed')) pL.classList.remove('collapsed');
+        const min2 = Math.min(MIN_PANEL, Math.max(64, Math.floor(tot / 2) - 10));
+        const rw = pR.classList.contains('collapsed') ? 0 : panelWidth(pR);
+        const maxL = Math.max(min2, tot - rw - min2);
+        const nL = clamp(mx, min2, maxL);
+        const nC = Math.max(min2, tot - nL - rw);
+        pL.style.width = nL + 'px'; pC.style.width = nC + 'px';
+        normalizeLayout('left');
+      } else {
+        if (pR.classList.contains('collapsed')) pR.classList.remove('collapsed');
+        const min2 = Math.min(MIN_PANEL, Math.max(64, Math.floor(tot / 2) - 10));
+        const lw = pL.classList.contains('collapsed') ? 0 : panelWidth(pL);
+        const maxR = Math.max(min2, tot - lw - min2);
+        const nR = clamp(tot - mx, min2, maxR);
+        const nC = Math.max(min2, tot - lw - nR);
+        pC.style.width = nC + 'px'; pR.style.width = nR + 'px';
+        normalizeLayout('right');
+      }
+      saveLayout();
+    }
+    function stopDrag() {
+      if (!dragging) return;
+      document.getElementById('drag-shield').style.display = 'none';
+      document.getElementById(`gutter-${dragging}`).classList.remove('drag');
+      dragging = null;
+      document.removeEventListener('mousemove', onDrag);
+      document.removeEventListener('mouseup', stopDrag);
+    }
+
+    /* ══ LAYOUT PERSIST ══ */
+    function saveLayout() {
+      const pL = document.getElementById('panel-left'), pC = document.getElementById('panel-center'), pR = document.getElementById('panel-right');
+      try { localStorage.setItem('hitl-lyt', JSON.stringify({ l: pL.offsetWidth, c: pC.offsetWidth, r: pR.offsetWidth, lc: pL.classList.contains('collapsed'), cc: pC.classList.contains('collapsed'), rc: pR.classList.contains('collapsed') })); } catch (e) { }
+    }
+    function restoreLayout() {
+      const raw = localStorage.getItem('hitl-lyt');
+      if (!raw) { applyDefault(); return; }
+      try {
+        const s = JSON.parse(raw);
+        const pL = document.getElementById('panel-left'), pC = document.getElementById('panel-center'), pR = document.getElementById('panel-right');
+        if (s.lc) { pL.classList.add('collapsed'); savedW.left = s.l; } else pL.style.width = (s.l || 0) + 'px';
+        if (s.cc) { pC.classList.add('collapsed'); savedW.center = s.c; } else pC.style.width = (s.c || 0) + 'px';
+        if (s.rc) { pR.classList.add('collapsed'); savedW.right = s.r; } else pR.style.width = (s.r || 0) + 'px';
+        normalizeLayout();
+      } catch (e) { applyDefault(); }
+    }
+    function applyDefault() {
+      const avail = Math.max(0, document.getElementById('panels').offsetWidth - (GUTTER_W * 2));
+      const leftW = Math.round(avail * 0.65);
+      const rightW = Math.max(0, avail - leftW);
+      ['left', 'right'].forEach(w => { const el = document.getElementById(`panel-${w}`); if (el) el.classList.remove('collapsed'); });
+      // collapse center by default
+      const pC = document.getElementById('panel-center');
+      pC.classList.add('collapsed');
+      savedW.center = Math.round(avail * 0.26);
+      document.getElementById('panel-left').style.width = leftW + 'px';
+      document.getElementById('panel-right').style.width = rightW + 'px';
+      normalizeLayout();
+    }
+    function resetLayout() { localStorage.removeItem('hitl-lyt'); applyDefault(); }
+
+    /* ══ THEME + KEYS ══ */
+    function toggleTheme() { const h = document.documentElement; h.setAttribute('data-theme', h.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); }
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowLeft') navPDF(-1);
+      if (e.key === 'ArrowRight') navPDF(1);
+      if (e.key === 'Escape') { activeField = null; renderHLs(); hideFieldDetail(); showChatGeneral(); }
+    });
+
+
+    /* ══════════════════════════════════════════════════════
+       EDIT LAYOUT ENGINE
+       Adds Edit Mode on top of the existing page.
+       Strategy: serialise current DOM outerHTML → send to
+       Anthropic API with user prompt → receive updated HTML
+       → rewrite document. Undo/redo via stack of snapshots.
+    ══════════════════════════════════════════════════════ */
+
+    /* ── State ── */
+    const EDIT = {
+      active: false,
+      undoStack: [],   // [{forward, reverse}]
+      redoStack: [],
+      msgs: [],
+      panelPos: { x: null, y: null },
+      minimised: false
+    };
+
+    /* ── Build compact manifest of current page state ── */
+    function buildManifest() {
+      const rs = getComputedStyle(document.documentElement);
+      const varNames = [
+        '--bg', '--surface', '--surface2', '--card', '--border', '--border2',
+        '--text', '--text2', '--muted',
+        '--blue', '--blue-bg', '--blue-bd',
+        '--green', '--green-bg', '--green-bd',
+        '--amber', '--amber-bg', '--amber-bd',
+        '--violet', '--violet-bg', '--violet-bd',
+        '--font', '--mono',
+      ];
+      const css_vars = {};
+      varNames.forEach(v => { css_vars[v] = rs.getPropertyValue(v).trim(); });
+
+      const kpi_cards = Array.from(document.querySelectorAll('.kpi-card')).map(c => ({
+        label: c.querySelector('.kpi-label')?.textContent?.trim(),
+        value_id: c.querySelector('.kpi-value')?.id || null,
+        sub: c.querySelector('.kpi-sub')?.textContent?.trim(),
+      }));
+
+      const firstCard = document.querySelector('.kpi-card');
+
+      return {
+        theme: document.documentElement.getAttribute('data-theme') || 'light',
+        css_vars,
+        panels: {
+          left: { id: 'panel-left', width: document.getElementById('panel-left')?.style.width || '62%' },
+          center: { id: 'panel-center', width: document.getElementById('panel-center')?.style.width || '38%' },
+        },
+        kpi_cards,
+        kpi_count: kpi_cards.length,
+        kpi_card_html: firstCard ? firstCard.outerHTML : '',
+        extra_widgets: Array.from(document.querySelectorAll('[data-edit-widget]'))
+          .map(w => ({ id: w.id, type: w.dataset.editWidget })),
+      };
+    }
+
+    /* ── Apply actions surgically to live DOM ── */
+    function applyActions(actions) {
+      for (const a of actions) {
+        try {
+          const el = (a.action === 'set_css_var') ? null : document.querySelector(a.target);
+          switch (a.action) {
+            case 'set_css_var':
+              document.documentElement.style.setProperty(a.target, a.value); break;
+            case 'set_attribute':
+              (el || document.documentElement).setAttribute(a.attribute, a.value); break;
+            case 'set_style':
+              if (el) el.style[a.property] = a.value; break;
+            case 'insert_html':
+              if (el) el.insertAdjacentHTML(a.position || 'beforeend', a.html); break;
+            case 'replace_html':
+              if (el) el.innerHTML = a.html; break;
+            case 'remove_element':
+              el?.remove(); break;
+            case 'add_class':
+              el?.classList.add(a.class); break;
+            case 'remove_class':
+              el?.classList.remove(a.class); break;
+          }
+        } catch (e) { console.warn('[applyActions]', a, e); }
+      }
+    }
+
+    /* ── Build reverse actions BEFORE applying (captures pre-change state) ── */
+    function buildReverseActions(actions) {
+      const reverse = [];
+      for (const a of [...actions].reverse()) {
+        try {
+          switch (a.action) {
+            case 'set_css_var': {
+              const cur = getComputedStyle(document.documentElement).getPropertyValue(a.target).trim();
+              reverse.push({ action: 'set_css_var', target: a.target, value: cur }); break;
+            }
+            case 'set_attribute': {
+              const el = document.querySelector(a.target) || document.documentElement;
+              reverse.push({ action: 'set_attribute', target: a.target, attribute: a.attribute, value: el.getAttribute(a.attribute) || '' }); break;
+            }
+            case 'set_style': {
+              const el = document.querySelector(a.target);
+              reverse.push({ action: 'set_style', target: a.target, property: a.property, value: el ? el.style[a.property] : '' }); break;
+            }
+            case 'insert_html': {
+              const pos = a.position || 'beforeend';
+              reverse.push({ action: 'remove_element', target: pos === 'afterbegin' ? `${a.target} > :first-child` : `${a.target} > :last-child` }); break;
+            }
+            case 'replace_html': {
+              const el = document.querySelector(a.target);
+              reverse.push({ action: 'replace_html', target: a.target, html: el ? el.innerHTML : '' }); break;
+            }
+            case 'add_class':
+              reverse.push({ action: 'remove_class', target: a.target, class: a.class }); break;
+            case 'remove_class':
+              reverse.push({ action: 'add_class', target: a.target, class: a.class }); break;
+          }
+        } catch (e) { /* best-effort */ }
+      }
+      return reverse;
+    }
+
+    /* ── Enter edit mode ── */
+    function enterEditMode() {
+      if (REVIEW_MODE) return;
+      EDIT.active = true;
+      EDIT.undoStack = [];
+      EDIT.redoStack = [];
+      EDIT.msgs = [];
+
+      document.getElementById('edit-mode-badge').classList.add('visible');
+      document.getElementById('edit-topbar-extras').classList.add('visible');
+      document.getElementById('btn-edit-layout').style.display = 'none';
+      document.getElementById('edit-canvas-ring').classList.add('visible');
+
+      showFep();
+      fepPushMsg("them", "Ready. Describe a change or use a quick action above — changes apply instantly and can be undone.");
+      fepUpdateUndoRedo();
+    }
+
+    /* ── Exit edit mode ── */
+    function exitEditMode() {
+      EDIT.active = false;
+      document.getElementById('edit-mode-badge').classList.remove('visible');
+      document.getElementById('edit-topbar-extras').classList.remove('visible');
+      document.getElementById('btn-edit-layout').style.display = '';
+      document.getElementById('edit-canvas-ring').classList.remove('visible');
+      hideFep();
+    }
+
+    function editDone() {
+      if (REVIEW_MODE) return;
+      const forward = EDIT.undoStack.flatMap(e => Array.isArray(e.forward) ? e.forward : []);
+      try {
+        localStorage.setItem(LAYOUT_STORE_KEY, JSON.stringify(forward));
+      } catch (e) { /* best effort */ }
+      exitEditMode();
+    }
+
+    function editCancel() {
+      while (EDIT.undoStack.length) applyActions(EDIT.undoStack.pop().reverse);
+      EDIT.redoStack = [];
+      exitEditMode();
+    }
+
+    function editUndo() {
+      if (!EDIT.undoStack.length) return;
+      const entry = EDIT.undoStack.pop();
+      EDIT.redoStack.push(entry);
+      applyActions(entry.reverse);
+      fepUpdateUndoRedo();
+    }
+
+    function editRedo() {
+      if (!EDIT.redoStack.length) return;
+      const entry = EDIT.redoStack.pop();
+      EDIT.undoStack.push(entry);
+      applyActions(entry.forward);
+      fepUpdateUndoRedo();
+    }
+
+    function fepUpdateUndoRedo() {
+      document.getElementById('edit-undo-btn').disabled = EDIT.undoStack.length === 0;
+      document.getElementById('edit-redo-btn').disabled = EDIT.redoStack.length === 0;
+      const cc = document.getElementById('fep-change-count');
+      if (cc) {
+        const n = EDIT.undoStack.length;
+        if (n === 0) { cc.textContent = 'no changes yet'; cc.className = 'fep-change-count'; }
+        else { cc.textContent = n + (n === 1 ? ' change' : ' changes'); cc.className = 'fep-change-count has-changes'; }
+      }
+    }
+
+    /* ── Floating panel show/hide ── */
+    function showFep() {
+      const panel = document.getElementById('float-edit-panel');
+      const fab = document.getElementById('edit-fab');
+      if (EDIT.minimised) { fab.classList.add('visible'); return; }
+      panel.classList.add('visible');
+      fab.classList.remove('visible');
+      if (EDIT.panelPos.x !== null) {
+        panel.style.left = EDIT.panelPos.x + 'px';
+        panel.style.top = EDIT.panelPos.y + 'px';
+        panel.style.right = ''; panel.style.bottom = '';
+      }
+    }
+
+    function hideFep() {
+      document.getElementById('float-edit-panel').classList.remove('visible');
+      document.getElementById('edit-fab').classList.remove('visible');
+      EDIT.minimised = false;
+    }
+
+    function minimiseFep() {
+      EDIT.minimised = true;
+      document.getElementById('float-edit-panel').classList.remove('visible');
+      document.getElementById('edit-fab').classList.add('visible');
+    }
+
+    function restoreFep() {
+      EDIT.minimised = false;
+      document.getElementById('edit-fab').classList.remove('visible');
+      document.getElementById('float-edit-panel').classList.add('visible');
+    }
+
+    /* ── Drag the floating panel ── */
+    (function initFepDrag() {
+      const panel = document.getElementById('float-edit-panel');
+      const handle = document.getElementById('fep-handle');
+      let drag = false, ox = 0, oy = 0;
+
+      document.addEventListener('mousedown', function (e) {
+        if (!handle.contains(e.target) || e.target.closest('.fep-min-btn')) return;
+        drag = true;
+        const r = panel.getBoundingClientRect();
+        ox = e.clientX - r.left; oy = e.clientY - r.top;
+        panel.classList.add('is-dragging');
+        panel.style.right = ''; panel.style.bottom = '';
+        e.preventDefault();
+      });
+      document.addEventListener('mousemove', function (e) {
+        if (!drag) return;
+        const x = Math.max(0, Math.min(e.clientX - ox, window.innerWidth - panel.offsetWidth));
+        const y = Math.max(0, Math.min(e.clientY - oy, window.innerHeight - panel.offsetHeight));
+        panel.style.left = x + 'px'; panel.style.top = y + 'px';
+        EDIT.panelPos = { x, y };
+      });
+      document.addEventListener('mouseup', function () {
+        if (drag) { drag = false; panel.classList.remove('is-dragging'); }
+      });
+    })();
+
+    /* ── Chat messages ── */
+    function fepTs() { return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+
+    function fepPushMsg(role, text, cls) {
+      EDIT.msgs.push({ role, text, cls: cls || '', time: fepTs() });
+      fepRenderMsgs();
+    }
+
+    function fepReplaceLoader(id, text, cls) {
+      const idx = EDIT.msgs.findIndex(m => m.id === id);
+      const msg = { role: 'them', text, cls: cls || '', time: fepTs() };
+      if (idx >= 0) EDIT.msgs[idx] = msg; else EDIT.msgs.push(msg);
+      fepRenderMsgs();
+    }
+
+    function fepPushLoader() {
+      const id = 'ld_' + Date.now();
+      EDIT.msgs.push({
+        id, role: 'them', time: fepTs(), cls: 'fep-loading',
+        text: 'Applying change <span class="dot-loader"><span></span><span></span><span></span></span>'
+      });
+      fepRenderMsgs();
+      return id;
+    }
+
+    function fepRenderMsgs() {
+      const el = document.getElementById('fep-msgs');
+      if (!el) return;
+      el.innerHTML = EDIT.msgs.map(m => {
+        const bblCls = 'fep-bbl' + (m.cls ? ' ' + m.cls : '');
+        return '<div class="fep-msg ' + (m.role === 'me' ? 'me' : 'them') + '">' +
+          '<div class="' + bblCls + '">' + m.text + '</div>' +
+          '<div class="fep-meta">' + (m.role === 'me' ? 'You' : 'XAPP') + ' &middot; ' + m.time + '</div>' +
+          '</div>';
+      }).join('');
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function fepSetBusy(on) {
+      document.getElementById('fep-inp').disabled = on;
+      document.getElementById('fep-send').disabled = on;
+    }
+
+    function fepQuick(text) {
+      if (REVIEW_MODE) return;
+      const inp = document.getElementById('fep-inp');
+      if (inp) { inp.value = text; inp.style.height = 'auto'; inp.style.height = inp.scrollHeight + 'px'; }
+      fepSend();
+    }
+
+    function fepKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); fepSend(); }
+    }
+
+    /* ── Main LLM call ── */
+    async function fepSend() {
+      if (REVIEW_MODE) return;
+      const inp = document.getElementById('fep-inp');
+      const text = inp.value.trim();
+      if (!text) return;
+      inp.value = ''; inp.style.height = 'auto';
+
+      fepPushMsg('me', text);
+      fepSetBusy(true);
+      const lid = fepPushLoader();
+
+      try {
+        const manifest = buildManifest();
+        const rev = buildReverseActions([]); // placeholder; real reverse built after fetch
+
+        const response = await fetch('/api/layout-edit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ instruction: text, manifest }),
+        });
+
+        const data = await response.json();
+
+        if (!data || !data.ok) {
+          fepReplaceLoader(lid, '&#9888;&#65039; ' + ((data && data.message) || 'Layout edit failed.'), 'fep-sys');
+          fepSetBusy(false);
+          return;
+        }
+
+        const actions = data.actions || [];
+        if (!actions.length) {
+          fepReplaceLoader(lid, '&#9888;&#65039; No changes returned — try rephrasing.', 'fep-sys');
+          fepSetBusy(false);
+          return;
+        }
+
+        const reverse = buildReverseActions(actions);  // capture before applying
+        applyActions(actions);
+
+        EDIT.undoStack.push({ forward: actions, reverse });
+        EDIT.redoStack = [];
+        fepUpdateUndoRedo();
+
+        fepReplaceLoader(lid, '&#10003; Done &mdash; "' + text + '"', 'fep-ok');
+
+      } catch (err) {
+        fepReplaceLoader(lid, '&#9888;&#65039; Could not reach the server.', 'fep-sys');
+      }
+
+      fepSetBusy(false);
+    }
+    /* ══ END EDIT LAYOUT ENGINE ══ */
+
+    /* ══════════════════════════════════════════════════════
+       ATTRIBUTE VERIFICATION PANEL
+       10 lease attributes — top 5 shown by default,
+       remaining 5 available via dropdown, removable.
+    ══════════════════════════════════════════════════════ */
+
+    // All 10 lease attributes extracted from the PDF
+    const LEASE_ATTRS = [
+      // ── Classification metadata ──────────────────────────────────
+      { id: 'a_pdf_nature', label: 'PDF Nature', value: 'image_based', conf: 91, page: 1, meta: true, group: 'classification' },
+      { id: 'a_cls_conf', label: 'Classification Conf.', value: '91%', conf: 91, page: 1, meta: true, group: 'classification' },
+      // ── Extracted attributes ──────────────────────────────────────
+      { id: 'a_doc_type', label: 'Document Type', value: 'lease', conf: 97, page: 1, group: 'extracted' },
+      { id: 'a_exec_date', label: 'Execution Date', value: '2001-08-01', conf: 94, page: 1, group: 'extracted' },
+      { id: 'a_landlord', label: 'Landlord', value: 'American Future Systems, Inc.', conf: 96, page: 1, group: 'extracted' },
+      { id: 'a_tenant', label: 'Tenant', value: 'Charles River Laboratories, Inc.', conf: 96, page: 1, group: 'extracted' },
+      { id: 'a_property', label: 'Property Address', value: '350 Technology Drive, Great Valley Corporate Center, Malvern, PA', conf: 91, page: 1, group: 'extracted' },
+      { id: 'a_amend_num', label: 'Amendment Number', value: 'null', conf: 85, page: 1, group: 'extracted' },
+      { id: 'a_orig_expiry', label: 'Lease Expiry Date', value: '2007-07-31', conf: 90, page: 1, group: 'extracted' },
+      { id: 'a_amend_expiry', label: 'Amended Expiry Date', value: 'null', conf: 72, page: 1, group: 'extracted' },
+      { id: 'a_base_rent', label: 'Base Rent', value: 'null', conf: 70, page: 1, group: 'extracted' },
+      { id: 'a_renewal_dt', label: 'Renewal Notice Date', value: '2006-07-31', conf: 83, page: 1, group: 'extracted' },
+    ];
+
+    // Top 5 shown by default — both classification fields + top 3 extracted
+    const DEFAULT_SHOWN_IDS = ['a_pdf_nature', 'a_cls_conf', 'a_doc_type', 'a_landlord', 'a_tenant'];
+
+    // Runtime state
+    const attrStates = {};  // id → 'pending' | 'confirmed' | 'edited'
+    const attrValues = {};  // id → current string value
+    let shownAttrs = [];  // ordered list of IDs currently displayed
+
+    function attrInit() {
+      LEASE_ATTRS.forEach(a => {
+        attrStates[a.id] = 'pending';
+        attrValues[a.id] = a.value;
+      });
+      shownAttrs = [...DEFAULT_SHOWN_IDS];
+      renderAttrDropdown();
+      renderAttrList();
+      updateAttrSummary();
+    }
+
+    function renderAttrDropdown() {
+      const sel = document.getElementById('attr-add-select');
+      if (!sel) return;
+      const hidden = LEASE_ATTRS.filter(a => !shownAttrs.includes(a.id));
+      const cls = hidden.filter(a => a.group === 'classification');
+      const ext = hidden.filter(a => a.group === 'extracted');
+
+      let html = `<option value="">+ Add field</option>`;
+      if (cls.length) {
+        html += `<optgroup label="Classification">` +
+          cls.map(a => `<option value="${a.id}">${a.label}</option>`).join('') +
+          `</optgroup>`;
+      }
+      if (ext.length) {
+        html += `<optgroup label="Extracted Fields">` +
+          ext.map(a => `<option value="${a.id}">${a.label}</option>`).join('') +
+          `</optgroup>`;
+      }
+      sel.innerHTML = html;
+
+      sel.onchange = () => {
+        const v = sel.value;
+        if (!v) return;
+        if (!shownAttrs.includes(v)) { shownAttrs.push(v); }
+        sel.value = '';
+        renderAttrDropdown();
+        renderAttrList();
+        updateAttrSummary();
+      };
+    }
+
+    function confClass(conf) {
+      if (conf >= 90) return 'high';
+      if (conf >= 80) return 'med';
+      return 'low';
+    }
+
+    function renderAttrList() {
+      const list = document.getElementById('attr-list');
+      if (!list) return;
+
+      if (shownAttrs.length === 0) {
+        list.innerHTML = `<div class="attr-empty">
+          <div class="attr-empty-ico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:var(--text2)">No attributes shown</div>
+          <div style="font-size:10px;color:var(--muted)">Use the dropdown above to add fields to verify.</div>
+        </div>`;
+        updateAttrCount(0);
+        return;
+      }
+
+      // Build grouped output — insert a group header when group changes
+      let lastGroup = null;
+      const parts = [];
+
+      shownAttrs.forEach(id => {
+        const a = LEASE_ATTRS.find(x => x.id === id);
+        if (!a) return;
+        const s = attrStates[id];
+        const val = attrValues[id];
+        const cc = confClass(a.conf);
+        const isMeta = !!a.meta;
+
+        // Group separator
+        if (a.group !== lastGroup) {
+          lastGroup = a.group;
+          if (a.group === 'classification') {
+            parts.push(`
+            <div class="attr-group-header">
+              <span class="attr-group-label">Classification</span>
+              <div class="attr-group-line"></div>
+              <span class="attr-group-badge cls">PDF Classifier</span>
+            </div>`);
+          } else if (a.group === 'extracted') {
+            parts.push(`
+            <div class="attr-group-header">
+              <span class="attr-group-label">Extracted Fields</span>
+              <div class="attr-group-line"></div>
+            </div>`);
+          }
+        }
+
+        parts.push(`
+        <div class="attr-row ${isMeta ? 'meta ' : ''}${s}" id="atrow_${id}">
+          <div class="attr-row-head">
+            <span class="attr-row-label">${a.label}</span>
+            <button class="attr-remove-btn" title="Remove field" onclick="removeAttr('${id}')">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <input class="attr-input" id="atinp_${id}"
+            value="${escHtml(val)}"
+            oninput="onAttrInput('${id}', this.value)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();confirmAttr('${id}')}"
+            placeholder="Enter value…" />
+          <div class="attr-row-foot">
+            <button class="attr-cfm-btn${s === 'confirmed' ? ' done' : ''}" id="atcfm_${id}"
+              onclick="confirmAttr('${id}')">
+              ${s === 'confirmed' ? '✓ Confirmed' : '✓ Confirm'}
+            </button>
+            ${s !== 'pending' ? `<button class="attr-rst-btn" onclick="resetAttr('${id}')">Reset</button>` : ''}
+          </div>
+        </div>`);
+      });
+
+      list.innerHTML = parts.join('');
+      updateAttrCount(shownAttrs.length);
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function onAttrInput(id, val) {
+      attrValues[id] = val;
+      const orig = LEASE_ATTRS.find(a => a.id === id)?.value || '';
+      const isMeta = !!LEASE_ATTRS.find(a => a.id === id)?.meta;
+      if (val !== orig) {
+        attrStates[id] = 'edited';
+      } else {
+        attrStates[id] = 'pending';
+      }
+      // update row class without full re-render (preserve focus)
+      const row = document.getElementById(`atrow_${id}`);
+      if (row) { row.className = `attr-row ${isMeta ? 'meta ' : ''}${attrStates[id]}`; }
+      const cfmBtn = document.getElementById(`atcfm_${id}`);
+      if (cfmBtn) { cfmBtn.textContent = '✓ Confirm'; cfmBtn.classList.remove('done'); }
+      updateAttrSummary();
+    }
+
+    function confirmAttr(id) {
+      attrStates[id] = 'confirmed';
+      renderAttrList();
+      updateAttrSummary();
+    }
+
+    function resetAttr(id) {
+      attrValues[id] = LEASE_ATTRS.find(a => a.id === id)?.value || '';
+      attrStates[id] = 'pending';
+      renderAttrList();
+      updateAttrSummary();
+    }
+
+    function removeAttr(id) {
+      shownAttrs = shownAttrs.filter(x => x !== id);
+      renderAttrDropdown();
+      renderAttrList();
+      updateAttrSummary();
+    }
+
+    function updateAttrCount(n) {
+      const el = document.getElementById('attr-count');
+      if (el) el.textContent = `${n} shown`;
+    }
+
+    function updateAttrSummary() {
+      const confirmed = shownAttrs.filter(id => attrStates[id] === 'confirmed').length;
+      const edited = shownAttrs.filter(id => attrStates[id] === 'edited').length;
+      const ec = document.getElementById('attr-sum-c');
+      const ee = document.getElementById('attr-sum-e');
+      if (ec) ec.textContent = `${confirmed} confirmed`;
+      if (ee) ee.textContent = `${edited} edited`;
+    }
+
+    function saveAttrSnapshot() {
+      const snap = shownAttrs.map(id => ({
+        id, label: LEASE_ATTRS.find(a => a.id === id)?.label,
+        value: attrValues[id], state: attrStates[id]
+      }));
+      console.log('[ATTR SNAPSHOT]', JSON.stringify(snap, null, 2));
+      // Visual feedback
+      const btn = document.querySelector('.attr-save-btn');
+      if (btn) {
+        const orig = btn.textContent;
+        btn.textContent = '✓ Saved';
+        btn.style.background = 'var(--green)';
+        btn.style.color = '#fff';
+        btn.style.borderColor = 'var(--green)';
+        setTimeout(() => {
+          btn.textContent = orig;
+          btn.style.background = '';
+          btn.style.color = '';
+          btn.style.borderColor = '';
+        }, 1500);
+      }
+    }
+
+    /* ══ END ATTRIBUTE VERIFICATION PANEL ══ */
+
+    window.addEventListener('load', () => {
+      try {
+        const raw = localStorage.getItem(LAYOUT_STORE_KEY);
+        if (raw) {
+          const actions = JSON.parse(raw);
+          if (Array.isArray(actions) && actions.length) applyActions(actions);
+        }
+      } catch (e) { /* best effort */ }
+      restoreLayout();
+      init();
+    });
+    window.addEventListener('resize', () => {
+      if (!localStorage.getItem('hitl-lyt')) applyDefault();
+      else normalizeLayout();
+    });
+  </script>
+</body>
+
+</html>

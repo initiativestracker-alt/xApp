@@ -1,0 +1,1186 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+  .mem-page {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* ── KPI strip ── */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .kpi-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .kpi-icon.blue {
+    background: var(--blue-bg);
+    color: var(--blue);
+  }
+
+  .kpi-icon.green {
+    background: rgba(52, 211, 153, .12);
+    color: var(--green);
+  }
+
+  .kpi-icon.amber {
+    background: rgba(245, 158, 11, .10);
+    color: #f59e0b;
+  }
+
+  .kpi-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 3px;
+  }
+
+  .kpi-val {
+    font-size: 24px;
+    font-weight: 900;
+    font-family: var(--mono);
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  /* ── Main split ── */
+  .mem-split {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  /* ── Card shell ── */
+  .mc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .mc-hdr {
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .mc-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .mc-body {
+    padding: 18px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .mc-body::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .mc-body::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    gap: 10px;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .es-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    border: 1px dashed var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+    color: var(--muted);
+    opacity: .5;
+  }
+
+  .es-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text2);
+  }
+
+  .es-sub {
+    font-size: 12px;
+    color: var(--muted);
+    max-width: 240px;
+    line-height: 1.5;
+  }
+
+  .es-steps {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    max-width: 280px;
+    text-align: left;
+  }
+
+  .es-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  .es-step-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--blue-bg);
+    border: 1px solid var(--blue-bd, #1a3566);
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  /* ── Job Details ── */
+  .jd-hero {
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  /* Top accent strip */
+  .jd-hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+  }
+
+  .jd-id {
+    font-size: 22px;
+    font-weight: 900;
+    font-family: var(--mono);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -.02em;
+  }
+
+  .jd-id-prefix {
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    background: var(--blue-bg);
+    border: 1px solid var(--blue-bd, #1a3566);
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-family: var(--font);
+  }
+
+  .jd-step-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 6px;
+    line-height: 1.35;
+    letter-spacing: -.01em;
+  }
+
+  .jd-step-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── Description box ── */
+  .desc-box {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--card);
+    margin-bottom: 0;
+  }
+
+  .desc-box-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .desc-box-hd:hover {
+    background: var(--border);
+  }
+
+  .desc-toggle {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--blue);
+    text-transform: none;
+    letter-spacing: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .desc-box-body {
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.65;
+    display: none;
+  }
+
+  .desc-box-body.open {
+    display: block;
+  }
+
+  .desc-preview {
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .desc-preview.hidden {
+    display: none;
+  }
+
+  /* ── Completed job state in detail panel ── */
+  .jd-completed {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    gap: 10px;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .jd-completed-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(52, 211, 153, .12);
+    border: 1px solid rgba(52, 211, 153, .4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--green);
+  }
+
+  .jd-completed-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .jd-completed-sub {
+    font-size: 12px;
+    color: var(--muted);
+    max-width: 240px;
+    line-height: 1.5;
+  }
+
+  .jd-badges {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .bdg {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .bdg.ui {
+    border-color: var(--blue-bd, #1a3566);
+    color: var(--blue);
+    background: var(--blue-bg, #0f1e3d);
+  }
+
+  .bdg.auto {
+    color: var(--muted);
+  }
+
+  /* Bottom meta row */
+  .jd-hero-meta {
+    display: flex;
+    gap: 0;
+    border-top: 0;
+  }
+
+  .jd-meta-cell {
+    flex: 1;
+    padding: 9px 14px;
+    border-right: 1px solid var(--border);
+  }
+
+  .jd-meta-cell:last-child {
+    border-right: none;
+  }
+
+  .jd-meta-lbl {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 3px;
+  }
+
+  .jd-meta-val {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  .jd-claimed {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .jd-claimed-lbl {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 3px;
+  }
+
+  .jd-claimed-val {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  /* section label */
+  .slbl {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin: 16px 0 8px;
+    display: block;
+  }
+
+  .slbl:first-child {
+    margin-top: 0;
+  }
+
+  /* Description */
+  .guidance-box {
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    overflow: hidden;
+  }
+
+  .guidance-box-hd {
+    padding: 7px 12px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .guidance-box-body {
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.65;
+  }
+
+  /* ── Business fields — two-column key/value rows ── */
+  .bf-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .bf-table tr {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .bf-table tr:last-child {
+    border-bottom: none;
+  }
+
+  .bf-table td {
+    padding: 7px 10px;
+    font-size: 12px;
+    vertical-align: top;
+  }
+
+  .bf-table td:first-child {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    white-space: nowrap;
+    width: 40%;
+    padding-right: 16px;
+  }
+
+  .bf-table td:last-child {
+    font-family: var(--mono);
+    color: var(--text);
+    font-size: 12px;
+  }
+
+  .bf-wrap {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--card);
+  }
+
+  /* ── IO section — side by side chips ── */
+  .io-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .io-box {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .io-box-hd {
+    padding: 7px 12px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .io-box-hd svg {
+    opacity: .6;
+  }
+
+  .io-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .io-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.4;
+  }
+
+  .io-list li:last-child {
+    border-bottom: none;
+  }
+
+  .io-list li::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  /* CTA */
+  .jd-cta {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .jd-cta-hint {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .btn-cta {
+    padding: 9px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 800;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font);
+    transition: opacity .12s;
+  }
+
+  .btn-cta:hover {
+    opacity: .88;
+  }
+
+  /* ── Queue pane ── */
+  .q-item {
+    display: flex;
+    align-items: stretch;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: border-color .13s;
+  }
+
+  .q-item:hover {
+    border-color: var(--blue-bd, #1a3566);
+  }
+
+  .q-item.sel {
+    border-color: var(--blue);
+    background: var(--blue-bg);
+    border-width: 1.5px;
+  }
+
+  .q-select {
+    flex: 1;
+    padding: 13px 15px;
+    text-decoration: none;
+    display: block;
+    min-width: 0;
+  }
+
+  .q-id {
+    font-family: var(--mono);
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .q-step {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .q-time {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: var(--mono);
+  }
+
+  /* ── Claim section ── */
+  .claim-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .claim-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .toggle-auto {
+    font-size: 11px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .toggle-auto:hover {
+    color: var(--text);
+  }
+
+  .sec-divider {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .sec-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .hitl-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .hitl-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    transition: border-color .12s;
+  }
+
+  .hitl-row:hover {
+    border-color: var(--border2, #2d3850);
+  }
+
+  .hitl-row-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .hitl-row-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hitl-row-desc {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .stat-group {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .stat-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 78px;
+    min-width: 78px;
+  }
+
+  .stat-n {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1;
+    min-width: 2ch;
+    text-align: center;
+  }
+
+  .stat-lbl {
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-top: 2px;
+  }
+
+  .stat-n.avail {
+    color: var(--blue);
+  }
+
+  .stat-n.mine {
+    color: var(--green);
+  }
+
+  .claim-btn {
+    padding: 8px 12px;
+    width: 128px;
+    min-width: 128px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 800;
+    background: var(--blue);
+    color: #fff;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: opacity .12s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-align: center;
+  }
+
+  .claim-btn:hover {
+    opacity: .88;
+  }
+
+  .claim-btn:disabled {
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: not-allowed;
+    border-color: var(--border);
+    opacity: 1;
+  }
+
+  /* ── Automated pipeline view ── */
+  .auto-rows {
+    display: none;
+  }
+
+  .auto-rows.show {
+    display: block;
+  }
+
+  .pipeline {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    overflow-x: auto;
+    padding: 16px 0 8px;
+  }
+
+  .pipeline::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .pipeline::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+
+  .pipe-step {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .pipe-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 120px;
+    text-align: center;
+  }
+
+  .pipe-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .pipe-icon.running {
+    background: rgba(52, 211, 153, .1);
+    border-color: rgba(52, 211, 153, .4);
+    color: var(--green);
+  }
+
+  .pipe-icon.queued {
+    background: var(--blue-bg);
+    border-color: var(--blue-bd, #1a3566);
+    color: var(--blue);
+  }
+
+  .pipe-name {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 110px;
+    line-height: 1.3;
+  }
+
+  .pipe-count {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .pipe-count .n {
+    font-weight: 800;
+    color: var(--text2);
+  }
+
+  .pipe-arrow {
+    color: var(--border);
+    padding: 0 2px;
+    margin-top: -16px;
+    flex-shrink: 0;
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  @media(max-width:900px) {
+    .kpi-strip {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .mem-split {
+      grid-template-columns: 1fr;
+    }
+
+    .io-cols {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mem-page">
+
+  {% set hitl_steps = steps | selectattr('is_ui_step') | list %}
+  {% set auto_steps = steps | rejectattr('is_ui_step') | list %}
+  {% set total_available = hitl_steps | sum(attribute='available') %}
+  {% set total_in_progress = hitl_steps | sum(attribute='in_progress') %}
+
+  <!-- KPIs -->
+  <div class="kpi-strip">
+    <div class="kpi">
+      <div class="kpi-icon blue">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+          <path d="M8 21h8M12 17v4" />
+        </svg>
+      </div>
+      <div>
+        <div class="kpi-label">My Queue</div>
+        <div class="kpi-val" style="color:var(--blue)">{{ my_jobs|length }}</div>
+        <div class="kpi-sub">Batches claimed by you</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon green">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+      </div>
+      <div>
+        <div class="kpi-label">Available Now</div>
+        <div class="kpi-val">{{ total_available }}</div>
+        <div class="kpi-sub">Ready to claim</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon amber">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      </div>
+      <div>
+        <div class="kpi-label">Team Active</div>
+        <div class="kpi-val">{{ total_in_progress }}</div>
+        <div class="kpi-sub">Claimed by your team</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon green">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+      </div>
+      <div>
+        <div class="kpi-label">Completed Batches</div>
+        <div class="kpi-val">{{ claimed_completed_count }}</div>
+        <div class="kpi-sub">Total batches completed</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:-8px;flex-wrap:wrap;">
+    <form method="get" action="{{ url_for('member_dashboard') }}">
+      <span
+        style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase;">Workflow</span>
+      <select name="workflow_id" onchange="this.form.submit()"
+        style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--text2);min-width:210px;">
+        {% for wf in workflows %}
+        <option value="{{ wf.workflow_id }}" {% if selected_workflow_id==wf.workflow_id %}selected{% endif %}>P{{
+          wf.priority }} · {{ wf.workflow_id }}</option>
+        {% endfor %}
+      </select>
+    </form>
+    <form method="get" action="{{ url_for('member_dashboard') }}">
+      <input type="hidden" name="workflow_id" value="{{ selected_workflow_id or '' }}" />
+      <input type="hidden" name="batch_id" value="{{ selected_batch_id or '' }}" />
+      <span
+        style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase;">Assigned
+        Job</span>
+      <select name="assigned_job_id" onchange="this.form.submit()"
+        style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--text2);min-width:220px;">
+        {% for aj in assigned_jobs %}
+        <option value="{{ aj.assigned_job_id }}" {% if selected_assigned_job_id==aj.assigned_job_id %}selected{% endif
+          %}>P{{ aj.priority }} · {{ aj.job_name }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  <!-- ── Claim a Batch ── -->
+  <div>
+    <div class="claim-hdr">
+      <div>
+        <span class="claim-title">Claim a Batch</span>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px;font-weight:600;letter-spacing:.02em;">Batches are
+          individual items within a Job that require human review</div>
+      </div>
+      {% if auto_steps %}
+      <button class="toggle-auto" id="toggle-btn" onclick="toggleAuto()">Show automated pipeline</button>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if hitl_steps %}
+  <div class="sec-divider">Human Review Steps</div>
+  <div class="hitl-rows">
+    {% for st in hitl_steps %}
+    <div class="hitl-row">
+      <div class="hitl-row-info">
+        <div class="hitl-row-name">{{ st.step_name_display }}</div>
+        {% if st.description %}
+        <div class="hitl-row-desc">{{ st.description[:90] }}{% if st.description|length > 90 %}…{% endif %}</div>
+        {% endif %}
+      </div>
+      <div class="stat-group">
+        <div class="stat-chip">
+          <span class="stat-n avail">{{ st.available }}</span>
+          <span class="stat-lbl">Available</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-n" style="color:var(--text2);">{{ st.in_progress }}</span>
+          <span class="stat-lbl">Active</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-n mine">{{ st.mine }}</span>
+          <span class="stat-lbl">Mine</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-n" style="color:var(--teal);">{{ st.completed_by_me }}</span>
+          <span class="stat-lbl">My Completions</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-n" style="color:var(--green);">{{ st.completed }}</span>
+          <span class="stat-lbl">Completed</span>
+        </div>
+      </div>
+      <form method="post" action="{{ url_for('member_claim') }}">
+        <input type="hidden" name="user" value="{{ user }}" />
+        <input type="hidden" name="batch_id" value="{{ selected_batch_id or '' }}" />
+        <input type="hidden" name="workflow_id" value="{{ selected_workflow_id or '' }}" />
+        <input type="hidden" name="assigned_job_id" value="{{ selected_assigned_job_id or '' }}" />
+        <input type="hidden" name="step_order" value="{{ st.step_order }}" />
+        <button type="submit" class="claim-btn" {% if st.available==0 %}disabled{% endif %}>
+          {% if st.available == 0 %}None Available{% else %}Claim Next{% endif %}
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if auto_steps %}
+  <div class="auto-rows" id="auto-rows">
+    <div class="sec-divider" style="margin-top:4px;">Automated Pipeline</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:4px 16px 16px;">
+      <div class="pipeline">
+        {% for st in auto_steps %}
+        <div class="pipe-step">
+          <div class="pipe-node">
+            <div class="pipe-icon {% if st.in_progress > 0 %}running{% elif st.available > 0 %}queued{% endif %}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2" />
+                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+              </svg>
+            </div>
+            <div class="pipe-name" title="{{ st.step_name_display }}">{{ st.step_name_display }}</div>
+            <div class="pipe-count">
+              {% if st.in_progress > 0 %}
+              <span class="n" style="color:var(--green);">{{ st.in_progress }}</span> running
+              {% elif st.available > 0 %}
+              <span class="n" style="color:var(--blue);">{{ st.available }}</span> queued
+              {% else %}
+              <span style="color:var(--muted);">idle</span>
+              {% endif %}
+            </div>
+          </div>
+          {% if not loop.last %}
+          <div class="pipe-arrow">›</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <div style="font-size:10px;color:var(--muted);padding-top:4px;border-top:1px solid var(--border);">
+        These steps run automatically — no action needed.
+        <span style="display:inline-flex;align-items:center;gap:4px;margin-left:10px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;"></span>
+          Running
+          <span
+            style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block;margin-left:6px;"></span>
+          Queued
+          <span
+            style="width:8px;height:8px;border-radius:50%;background:var(--border);display:inline-block;margin-left:6px;"></span>
+          Idle
+        </span>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+</div>
+<script>
+  let autoOn = false;
+  function toggleAuto() {
+    autoOn = !autoOn;
+    document.getElementById('auto-rows').classList.toggle('show', autoOn);
+    document.getElementById('toggle-btn').textContent = autoOn ? 'Hide automated pipeline' : 'Show automated pipeline';
+  }
+
+  function toggleDesc(hd) {
+    const preview = document.getElementById('desc-preview');
+    const full = document.getElementById('desc-full');
+    const lbl = hd.querySelector('.desc-toggle-lbl');
+    const chev = hd.querySelector('.desc-chevron');
+    const isOpen = full.classList.contains('open');
+    full.classList.toggle('open', !isOpen);
+    preview.classList.toggle('hidden', !isOpen);
+    lbl.textContent = isOpen ? 'Show more' : 'Show less';
+    chev.style.transform = isOpen ? '' : 'rotate(180deg)';
+  }
+</script>
+{% endblock %}

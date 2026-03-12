@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title or "XAPP Dashboard" }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ═══ CSS Variables (Premium Theme) ══════════════════════════════ */
+    :root {
+      --bg: #0f1117;
+      --sidebar: #13161f;
+      --surface: #181d2a;
+      --surface2: #1e2436;
+      --card: #1c2130;
+      --border: #252e42;
+      --border2: #2d3850;
+      --text: #e8edf5;
+      --text2: #8a97b0;
+      --muted: #4d5a73;
+      --blue: #4f8ef7;
+      --blue-bg: #0f1e3d;
+      --blue-bd: #1a3566;
+      --green: #34d399;
+      --accent: #4f8ef7;
+      --mono: 'Geist Mono', monospace;
+      --font: 'Geist', system-ui, sans-serif;
+      --sidebar-w: 220px;
+      --topbar-h: 52px;
+    }
+
+    [data-theme="light"] {
+      --bg: #f0f4fa;
+      --sidebar: #ffffff;
+      --surface: #ffffff;
+      --surface2: #f5f7fc;
+      --card: #ffffff;
+      --border: #e2e8f4;
+      --border2: #cbd5e8;
+      --text: #0f172a;
+      --text2: #475569;
+      --muted: #94a3b8;
+      --blue: #2563eb;
+      --blue-bg: #eff6ff;
+      --blue-bd: #bfdbfe;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      font-size: 13px;
+    }
+
+    #app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Topbar ────────────────────────────────────────────────── */
+    .topbar {
+      height: var(--topbar-h);
+      flex-shrink: 0;
+      background: var(--sidebar);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      gap: 16px;
+      z-index: 300;
+    }
+
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -.03em;
+      border-right: 1px solid var(--border);
+      padding-right: 16px;
+      margin-right: 4px;
+    }
+
+    .topbar-logo span {
+      color: var(--accent);
+    }
+
+    .topbar-center {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .usr-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .usr-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 10px;
+    }
+
+    .usr-name {
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    /* ── Profile Dropdown ───────────────────────────────────────── */
+    .usr-chip-wrapper {
+      position: relative;
+    }
+
+    .usr-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 180px;
+      background: var(--sidebar);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+      padding: 8px;
+      display: none;
+      z-index: 1000;
+    }
+
+    .usr-chip-wrapper:hover .usr-dropdown {
+      display: block;
+    }
+
+    .usr-info-box {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+    }
+
+    .usr-info-name {
+      font-weight: 800;
+      font-size: 12px;
+      display: block;
+      color: var(--text);
+    }
+
+    .usr-info-email {
+      font-size: 10px;
+      color: var(--text2);
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .usr-info-role {
+      display: inline-block;
+      font-size: 8.5px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--blue-bg);
+      color: var(--blue);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+    }
+
+    .usr-dropdown-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text2);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+
+    .usr-dropdown-link:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .usr-dropdown-link.logout {
+      color: #ef4444;
+    }
+
+    .usr-dropdown-link.logout:hover {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+
+    /* ── Body row ──────────────────────────────────────────────── */
+    #body-row {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ───────────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 12px 10px;
+      gap: 2px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+      text-decoration: none;
+      transition: all .15s;
+    }
+
+    .sidebar-link:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .sidebar-link.active {
+      background: var(--blue-bg);
+      color: var(--blue);
+      border: 1px solid var(--blue-bd);
+    }
+
+    .sidebar-section {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      padding: 12px 8px 4px;
+    }
+
+    /* ── Content ───────────────────────────────────────────────── */
+    #main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .main-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    @media(max-width: 800px) {
+      .sidebar {
+        display: none;
+      }
+
+      .topbar-logo {
+        width: auto;
+        border: none;
+      }
+    }
+
+    /* Utility for hidden */
+    .hidden {
+      display: none !important;
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+  <div id="app-shell">
+    <header class="topbar">
+      <div class="topbar-logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+        </svg>
+        <span>XAPP</span>
+      </div>
+      <div class="topbar-center">
+        {% block topbar_center %}{% endblock %}
+      </div>
+      <div class="topbar-right">
+        <button onclick="toggleTheme()" class="usr-chip" style="padding: 6px; border-radius: 8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5" />
+            <path
+              d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+          </svg>
+        </button>
+        <div class="usr-chip-wrapper">
+          <div class="usr-chip">
+            <div class="usr-avatar">
+              {% if member and member.name %}
+              {{ member.name[:2].upper() }}
+              {% else %}
+              NA
+              {% endif %}
+            </div>
+            <span class="usr-name">{{ member.name if member else 'Guest' }}</span>
+          </div>
+          {% if member %}
+          <div class="usr-dropdown">
+            <div class="usr-info-box">
+              <span class="usr-info-name">{{ member.name }}</span>
+              <span class="usr-info-email">{{ member.email }}</span>
+              <span class="usr-info-role">{{ member.role }}</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="usr-dropdown-link logout">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+              </svg>
+              Sign out
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </header>
+
+    <div id="body-row">
+      <aside class="sidebar">
+        <div class="sidebar-section">Main Menu</div>
+        <a href="{{ url_for('home') }}"
+          class="sidebar-link {% if request.path == url_for('home') or request.path == '/setup' %}active{% endif %}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          Upload
+        </a>
+        <a href="{{ url_for('member_home') }}"
+          class="sidebar-link {% if request.path.startswith('/workbench') %}active{% endif %}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <path d="M8 21h8M12 17v4" />
+          </svg>
+          Workbench
+        </a>
+        <a href="{{ url_for('manager_dashboard') }}"
+          class="sidebar-link {% if request.path == url_for('manager_dashboard') %}active{% endif %}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+          Manager
+        </a>
+        <a href="{{ url_for('member_dashboard') }}"
+          class="sidebar-link {% if request.path == url_for('member_dashboard') %}active{% endif %}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          Member
+        </a>
+        {% block sidebar_extra %}{% endblock %}
+      </aside>
+
+      <div id="main-area">
+        {% block main_header %}{% endblock %}
+        <div class="main-scroll" {% block scroll_attrs %}{% endblock %}>
+          {% block content %}{% endblock %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const h = document.documentElement;
+      const cur = h.getAttribute('data-theme');
+      h.setAttribute('data-theme', cur === 'light' ? '' : 'light');
+      if (window.onThemeToggle) window.onThemeToggle();
+    }
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+
+</html>

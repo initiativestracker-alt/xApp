@@ -1,0 +1,1265 @@
+{
+  "steps": [
+    {
+      "step_order": 0,
+      "step_id": "0",
+      "step_name": "Input",
+      "description": "Workflow starting point.",
+      "input_list_json": "[\"user_request\"]",
+      "output_list_json": "[\"initial_context\"]",
+      "expected_seconds": 120
+    },
+    {
+      "step_order": 1,
+      "step_id": "1",
+      "step_name": "PDF_Type_Finder",
+      "description": "Classifies PDFs as image-based or text-based and provides signed URLs for further processing.",
+      "input_list_json": "[\"PDF file path (string)\", \"PDF file name (string)\", \"AWS S3 credentials/config (dict)\", \"SMB credentials/config (dict)\", \"Queue message (JSON)\", \"Attribute fields (string/any)\"]",
+      "output_list_json": "[\"Classification report (JSON)\", \"Signed URL (string)\", \"Status messages (string)\", \"Error logs (string)\"]",
+      "expected_seconds": 180
+    },
+    {
+      "step_order": 2,
+      "step_id": "2",
+      "step_name": "hypo - PDF_Type_Finder_to_Scanned_PDF_Converter_M2_Router_V1",
+      "description": "Routes image-based PDFs from the classifier to the OCR step, formatting the signed URL and job metadata as required.",
+      "input_list_json": "[\"Classification report (JSON)\", \"Signed URL (string)\", \"Status messages (string)\", \"Error logs (string)\"]",
+      "output_list_json": "[\"Scanned PDF files (from S3)\", \"JSON job metadata (from queue)\"]",
+      "expected_seconds": 180
+    },
+    {
+      "step_order": 3,
+      "step_id": "3",
+      "step_name": "hypo - PDF_Type_Finder_to_PDF_Chunker_Router_V1",
+      "description": "Routes text-based PDFs from the classifier to the chunking step, formatting the signed URL, configuration, and queue message as required.",
+      "input_list_json": "[\"Classification report (JSON)\", \"Signed URL (string)\", \"Status messages (string)\", \"Error logs (string)\"]",
+      "output_list_json": "[\"PDF file (from S3)\", \"User configuration JSON (from S3)\", \"Queue message (JSON with metadata)\"]",
+      "expected_seconds": 180
+    },
+    {
+      "step_order": 4,
+      "step_id": "4",
+      "step_name": "Scanned_PDF_Converter_M2",
+      "description": "Converts scanned/image PDFs to searchable PDFs using OCR.",
+      "input_list_json": "[\"Scanned PDF files (from S3)\", \"JSON job metadata (from queue)\"]",
+      "output_list_json": "[\"Searchable/readable PDF files (to S3)\", \"Signed S3 URLs\", \"JSON status messages\"]",
+      "expected_seconds": 240
+    },
+    {
+      "step_order": 5,
+      "step_id": "5",
+      "step_name": "hypo - Scanned_PDF_Converter_M2_to_PDF_Chunker_Router_V1",
+      "description": "Prepares OCR-processed PDFs for chunking by formatting the S3 URL, configuration, and queue message as required.",
+      "input_list_json": "[\"Searchable/readable PDF files (to S3)\", \"Signed S3 URLs\", \"JSON status messages\"]",
+      "output_list_json": "[\"PDF file (from S3)\", \"User configuration JSON (from S3)\", \"Queue message (JSON with metadata)\"]",
+      "expected_seconds": 180
+    },
+    {
+      "step_order": 6,
+      "step_id": "6",
+      "step_name": "PDF Chunker",
+      "description": "Chunks PDF content for scalable entity extraction.",
+      "input_list_json": "[\"PDF file (from S3)\", \"User configuration JSON (from S3)\", \"Queue message (JSON with metadata)\"]",
+      "output_list_json": "[\"Chunked JSON (to S3)\", \"Presigned S3 URL\", \"Status/Result message (queue)\"]",
+      "expected_seconds": 240
+    },
+    {
+      "step_order": 7,
+      "step_id": "7",
+      "step_name": "hypo - PDF_Chunker_to_Entity_Extraction_LLM_Router_V1",
+      "description": "Loads chunked PDF text and prepares extraction configuration for the entity extraction LLM.",
+      "input_list_json": "[\"Chunked JSON (to S3)\", \"Presigned S3 URL\", \"Status/Result message (queue)\"]",
+      "output_list_json": "[\"Chunked PDF text (JSON)\", \"Extraction configuration (JSON or YAML)\", \"Optional: taxonomy or entity schema (JSON)\"]",
+      "expected_seconds": 180
+    },
+    {
+      "step_order": 8,
+      "step_id": "8",
+      "step_name": "hypo - Entity Extraction LLM",
+      "description": "Extracts financial entities from chunked PDF text using an LLM or NER engine.",
+      "input_list_json": "[\"Chunked PDF text (JSON)\", \"Extraction configuration (JSON or YAML)\", \"Optional: taxonomy or entity schema (JSON)\"]",
+      "output_list_json": "[\"Structured JSON with extracted entities, types, values, and source references\", \"Extraction confidence scores\", \"Error logs\"]",
+      "expected_seconds": 420
+    },
+    {
+      "step_order": 9,
+      "step_id": "9",
+      "step_name": "hypo - Entity_Extraction_LLM_to_GPT_Validation_Post_Process_Router_V1",
+      "description": "Prepares extracted entities and input text for validation by formatting them as required for the validation step.",
+      "input_list_json": "[\"Structured JSON with extracted entities, types, values, and source references\", \"Extraction confidence scores\", \"Error logs\"]",
+      "output_list_json": "[\"JSON message from queue\", \"String (input_text)\", \"String (response, expected to be escaped JSON)\"]",
+      "expected_seconds": 180
+    },
+    {
+      "step_order": 10,
+      "step_id": "10",
+      "step_name": "GPT Validation Post Process",
+      "description": "Validates and normalizes extracted entities for accuracy and consistency.",
+      "input_list_json": "[\"JSON message from queue\", \"String (input_text)\", \"String (response, expected to be escaped JSON)\"]",
+      "output_list_json": "[\"JSON validation result\", \"Log entries\", \"Error reports\"]",
+      "expected_seconds": 420
+    },
+    {
+      "step_order": 11,
+      "step_id": "11",
+      "step_name": "hypo - GPT_Validation_Post_Process_to_HITL_Annotation_Manager_Router_V1",
+      "description": "Prepares validated entities and reviewer assignment info for human annotation and review.",
+      "input_list_json": "[\"JSON validation result\", \"Log entries\", \"Error reports\"]",
+      "output_list_json": "[\"Extracted entities (JSON)\", \"Original PDF chunk references (JSON)\", \"Reviewer assignments/config (JSON)\"]",
+      "expected_seconds": 180
+    },
+    {
+      "step_order": 12,
+      "step_id": "12",
+      "step_name": "hypo - HITL Annotation Manager",
+      "description": "Manages human review and annotation of extracted entities for final validation.",
+      "input_list_json": "[\"Extracted entities (JSON)\", \"Original PDF chunk references (JSON)\", \"Reviewer assignments/config (JSON)\"]",
+      "output_list_json": "[\"Finalized, human-validated entities (JSON)\", \"Annotation metadata (reviewer, changes, timestamps)\", \"Audit logs\"]",
+      "expected_seconds": 480
+    },
+    {
+      "step_order": 13,
+      "step_id": "13",
+      "step_name": "Output",
+      "description": "Workflow end point.",
+      "input_list_json": "[\"*\"]",
+      "output_list_json": "[\"final_response\"]",
+      "expected_seconds": 120
+    }
+  ],
+  "steps_by_workflow": {
+    "wf_lease_abstraction": [
+      {
+        "step_order": 0,
+        "step_id": "0",
+        "step_name": "Input",
+        "description": "Workflow starting point.",
+        "input_list_json": "[\"user_request\"]",
+        "output_list_json": "[\"initial_context\"]",
+        "expected_seconds": 120
+      },
+      {
+        "step_order": 1,
+        "step_id": "1",
+        "step_name": "PDF_Type_Finder",
+        "description": "Classifies PDFs as image-based or text-based and provides signed URLs for further processing.",
+        "input_list_json": "[\"PDF file path (string)\", \"PDF file name (string)\", \"AWS S3 credentials/config (dict)\", \"SMB credentials/config (dict)\", \"Queue message (JSON)\", \"Attribute fields (string/any)\"]",
+        "output_list_json": "[\"Classification report (JSON)\", \"Signed URL (string)\", \"Status messages (string)\", \"Error logs (string)\"]",
+        "expected_seconds": 180
+      },
+      {
+        "step_order": 2,
+        "step_id": "2",
+        "step_name": "hypo - PDF_Type_Finder_to_Scanned_PDF_Converter_M2_Router_V1",
+        "description": "Routes image-based PDFs from the classifier to the OCR step, formatting the signed URL and job metadata as required.",
+        "input_list_json": "[\"Classification report (JSON)\", \"Signed URL (string)\", \"Status messages (string)\", \"Error logs (string)\"]",
+        "output_list_json": "[\"Scanned PDF files (from S3)\", \"JSON job metadata (from queue)\"]",
+        "expected_seconds": 180
+      },
+      {
+        "step_order": 3,
+        "step_id": "3",
+        "step_name": "hypo - PDF_Type_Finder_to_PDF_Chunker_Router_V1",
+        "description": "Routes text-based PDFs from the classifier to the chunking step, formatting the signed URL, configuration, and queue message as required.",
+        "input_list_json": "[\"Classification report (JSON)\", \"Signed URL (string)\", \"Status messages (string)\", \"Error logs (string)\"]",
+        "output_list_json": "[\"PDF file (from S3)\", \"User configuration JSON (from S3)\", \"Queue message (JSON with metadata)\"]",
+        "expected_seconds": 180
+      },
+      {
+        "step_order": 4,
+        "step_id": "4",
+        "step_name": "Scanned_PDF_Converter_M2",
+        "description": "Converts scanned/image PDFs to searchable PDFs using OCR.",
+        "input_list_json": "[\"Scanned PDF files (from S3)\", \"JSON job metadata (from queue)\"]",
+        "output_list_json": "[\"Searchable/readable PDF files (to S3)\", \"Signed S3 URLs\", \"JSON status messages\"]",
+        "expected_seconds": 240
+      },
+      {
+        "step_order": 5,
+        "step_id": "5",
+        "step_name": "hypo - Scanned_PDF_Converter_M2_to_PDF_Chunker_Router_V1",
+        "description": "Prepares OCR-processed PDFs for chunking by formatting the S3 URL, configuration, and queue message as required.",
+        "input_list_json": "[\"Searchable/readable PDF files (to S3)\", \"Signed S3 URLs\", \"JSON status messages\"]",
+        "output_list_json": "[\"PDF file (from S3)\", \"User configuration JSON (from S3)\", \"Queue message (JSON with metadata)\"]",
+        "expected_seconds": 180
+      },
+      {
+        "step_order": 6,
+        "step_id": "6",
+        "step_name": "PDF Chunker",
+        "description": "Chunks PDF content for scalable entity extraction.",
+        "input_list_json": "[\"PDF file (from S3)\", \"User configuration JSON (from S3)\", \"Queue message (JSON with metadata)\"]",
+        "output_list_json": "[\"Chunked JSON (to S3)\", \"Presigned S3 URL\", \"Status/Result message (queue)\"]",
+        "expected_seconds": 240
+      },
+      {
+        "step_order": 7,
+        "step_id": "7",
+        "step_name": "hypo - PDF_Chunker_to_Entity_Extraction_LLM_Router_V1",
+        "description": "Loads chunked PDF text and prepares extraction configuration for the entity extraction LLM.",
+        "input_list_json": "[\"Chunked JSON (to S3)\", \"Presigned S3 URL\", \"Status/Result message (queue)\"]",
+        "output_list_json": "[\"Chunked PDF text (JSON)\", \"Extraction configuration (JSON or YAML)\", \"Optional: taxonomy or entity schema (JSON)\"]",
+        "expected_seconds": 180
+      },
+      {
+        "step_order": 8,
+        "step_id": "8",
+        "step_name": "hypo - Entity Extraction LLM",
+        "description": "Extracts financial entities from chunked PDF text using an LLM or NER engine.",
+        "input_list_json": "[\"Chunked PDF text (JSON)\", \"Extraction configuration (JSON or YAML)\", \"Optional: taxonomy or entity schema (JSON)\"]",
+        "output_list_json": "[\"Structured JSON with extracted entities, types, values, and source references\", \"Extraction confidence scores\", \"Error logs\"]",
+        "expected_seconds": 420
+      },
+      {
+        "step_order": 9,
+        "step_id": "9",
+        "step_name": "hypo - Entity_Extraction_LLM_to_GPT_Validation_Post_Process_Router_V1",
+        "description": "Prepares extracted entities and input text for validation by formatting them as required for the validation step.",
+        "input_list_json": "[\"Structured JSON with extracted entities, types, values, and source references\", \"Extraction confidence scores\", \"Error logs\"]",
+        "output_list_json": "[\"JSON message from queue\", \"String (input_text)\", \"String (response, expected to be escaped JSON)\"]",
+        "expected_seconds": 180
+      },
+      {
+        "step_order": 10,
+        "step_id": "10",
+        "step_name": "GPT Validation Post Process",
+        "description": "Validates and normalizes extracted entities for accuracy and consistency.",
+        "input_list_json": "[\"JSON message from queue\", \"String (input_text)\", \"String (response, expected to be escaped JSON)\"]",
+        "output_list_json": "[\"JSON validation result\", \"Log entries\", \"Error reports\"]",
+        "expected_seconds": 420
+      },
+      {
+        "step_order": 11,
+        "step_id": "11",
+        "step_name": "hypo - GPT_Validation_Post_Process_to_HITL_Annotation_Manager_Router_V1",
+        "description": "Prepares validated entities and reviewer assignment info for human annotation and review.",
+        "input_list_json": "[\"JSON validation result\", \"Log entries\", \"Error reports\"]",
+        "output_list_json": "[\"Extracted entities (JSON)\", \"Original PDF chunk references (JSON)\", \"Reviewer assignments/config (JSON)\"]",
+        "expected_seconds": 180
+      },
+      {
+        "step_order": 12,
+        "step_id": "12",
+        "step_name": "hypo - HITL Annotation Manager",
+        "description": "Manages human review and annotation of extracted entities for final validation.",
+        "input_list_json": "[\"Extracted entities (JSON)\", \"Original PDF chunk references (JSON)\", \"Reviewer assignments/config (JSON)\"]",
+        "output_list_json": "[\"Finalized, human-validated entities (JSON)\", \"Annotation metadata (reviewer, changes, timestamps)\", \"Audit logs\"]",
+        "expected_seconds": 480
+      },
+      {
+        "step_order": 13,
+        "step_id": "13",
+        "step_name": "Output",
+        "description": "Workflow end point.",
+        "input_list_json": "[\"*\"]",
+        "output_list_json": "[\"final_response\"]",
+        "expected_seconds": 120
+      }
+    ],
+    "wf_test_project_scope": [
+      {
+        "step_order": 0,
+        "step_id": "0",
+        "step_name": "Input",
+        "description": "Workflow starting point.",
+        "input_list_json": "[\"user_request\"]",
+        "output_list_json": "[\"initial_context\"]",
+        "expected_seconds": 120
+      },
+      {
+        "step_order": 1,
+        "step_id": "1",
+        "step_name": "PDF_Type_Finder",
+        "description": "Classifies PDFs as image-based or text-based and provides signed URLs for further processing.",
+        "input_list_json": "[\"PDF file path (string)\", \"PDF file name (string)\", \"AWS S3 credentials/config (dict)\", \"SMB credentials/config (dict)\", \"Queue message (JSON)\", \"Attribute fields (string/any)\"]",
+        "output_list_json": "[\"Classification report (JSON)\", \"Signed URL (string)\", \"Status messages (string)\", \"Error logs (string)\"]",
+        "expected_seconds": 180
+      },
+      {
+        "step_order": 2,
+        "step_id": "2",
+        "step_name": "hypo - PDF_Type_Finder_to_Scanned_PDF_Converter_M2_Router_V1",
+        "description": "Routes image-based PDFs from the classifier to the OCR step, formatting the signed URL and job metadata as required.",
+        "input_list_json": "[\"Classification report (JSON)\", \"Signed URL (string)\", \"Status messages (string)\", \"Error logs (string)\"]",
+        "output_list_json": "[\"Scanned PDF files (from S3)\", \"JSON job metadata (from queue)\"]",
+        "expected_seconds": 180
+      },
+      {
+        "step_order": 3,
+        "step_id": "3",
+        "step_name": "hypo - PDF_Type_Finder_to_PDF_Chunker_Router_V1",
+        "description": "Routes text-based PDFs from the classifier to the chunking step, formatting the signed URL, configuration, and queue message as required.",
+        "input_list_json": "[\"Classification report (JSON)\", \"Signed URL (string)\", \"Status messages (string)\", \"Error logs (string)\"]",
+        "output_list_json": "[\"PDF file (from S3)\", \"User configuration JSON (from S3)\", \"Queue message (JSON with metadata)\"]",
+        "expected_seconds": 180
+      },
+      {
+        "step_order": 4,
+        "step_id": "4",
+        "step_name": "Scanned_PDF_Converter_M2",
+        "description": "Converts scanned/image PDFs to searchable PDFs using OCR.",
+        "input_list_json": "[\"Scanned PDF files (from S3)\", \"JSON job metadata (from queue)\"]",
+        "output_list_json": "[\"Searchable/readable PDF files (to S3)\", \"Signed S3 URLs\", \"JSON status messages\"]",
+        "expected_seconds": 240
+      },
+      {
+        "step_order": 5,
+        "step_id": "5",
+        "step_name": "hypo - Scanned_PDF_Converter_M2_to_PDF_Chunker_Router_V1",
+        "description": "Prepares OCR-processed PDFs for chunking by formatting the S3 URL, configuration, and queue message as required.",
+        "input_list_json": "[\"Searchable/readable PDF files (to S3)\", \"Signed S3 URLs\", \"JSON status messages\"]",
+        "output_list_json": "[\"PDF file (from S3)\", \"User configuration JSON (from S3)\", \"Queue message (JSON with metadata)\"]",
+        "expected_seconds": 180
+      },
+      {
+        "step_order": 6,
+        "step_id": "6",
+        "step_name": "PDF Chunker",
+        "description": "Chunks PDF content for scalable entity extraction.",
+        "input_list_json": "[\"PDF file (from S3)\", \"User configuration JSON (from S3)\", \"Queue message (JSON with metadata)\"]",
+        "output_list_json": "[\"Chunked JSON (to S3)\", \"Presigned S3 URL\", \"Status/Result message (queue)\"]",
+        "expected_seconds": 240
+      },
+      {
+        "step_order": 7,
+        "step_id": "7",
+        "step_name": "hypo - PDF_Chunker_to_Entity_Extraction_LLM_Router_V1",
+        "description": "Loads chunked PDF text and prepares extraction configuration for the entity extraction LLM.",
+        "input_list_json": "[\"Chunked JSON (to S3)\", \"Presigned S3 URL\", \"Status/Result message (queue)\"]",
+        "output_list_json": "[\"Chunked PDF text (JSON)\", \"Extraction configuration (JSON or YAML)\", \"Optional: taxonomy or entity schema (JSON)\"]",
+        "expected_seconds": 180
+      },
+      {
+        "step_order": 8,
+        "step_id": "8",
+        "step_name": "hypo - Entity Extraction LLM",
+        "description": "Extracts financial entities from chunked PDF text using an LLM or NER engine.",
+        "input_list_json": "[\"Chunked PDF text (JSON)\", \"Extraction configuration (JSON or YAML)\", \"Optional: taxonomy or entity schema (JSON)\"]",
+        "output_list_json": "[\"Structured JSON with extracted entities, types, values, and source references\", \"Extraction confidence scores\", \"Error logs\"]",
+        "expected_seconds": 420
+      },
+      {
+        "step_order": 9,
+        "step_id": "9",
+        "step_name": "hypo - Entity_Extraction_LLM_to_GPT_Validation_Post_Process_Router_V1",
+        "description": "Prepares extracted entities and input text for validation by formatting them as required for the validation step.",
+        "input_list_json": "[\"Structured JSON with extracted entities, types, values, and source references\", \"Extraction confidence scores\", \"Error logs\"]",
+        "output_list_json": "[\"JSON message from queue\", \"String (input_text)\", \"String (response, expected to be escaped JSON)\"]",
+        "expected_seconds": 180
+      },
+      {
+        "step_order": 10,
+        "step_id": "10",
+        "step_name": "GPT Validation Post Process",
+        "description": "Validates and normalizes extracted entities for accuracy and consistency.",
+        "input_list_json": "[\"JSON message from queue\", \"String (input_text)\", \"String (response, expected to be escaped JSON)\"]",
+        "output_list_json": "[\"JSON validation result\", \"Log entries\", \"Error reports\"]",
+        "expected_seconds": 420
+      },
+      {
+        "step_order": 11,
+        "step_id": "11",
+        "step_name": "hypo - GPT_Validation_Post_Process_to_HITL_Annotation_Manager_Router_V1",
+        "description": "Prepares validated entities and reviewer assignment info for human annotation and review.",
+        "input_list_json": "[\"JSON validation result\", \"Log entries\", \"Error reports\"]",
+        "output_list_json": "[\"Extracted entities (JSON)\", \"Original PDF chunk references (JSON)\", \"Reviewer assignments/config (JSON)\"]",
+        "expected_seconds": 180
+      },
+      {
+        "step_order": 12,
+        "step_id": "12",
+        "step_name": "hypo - HITL Annotation Manager",
+        "description": "Manages human review and annotation of extracted entities for final validation.",
+        "input_list_json": "[\"Extracted entities (JSON)\", \"Original PDF chunk references (JSON)\", \"Reviewer assignments/config (JSON)\"]",
+        "output_list_json": "[\"Finalized, human-validated entities (JSON)\", \"Annotation metadata (reviewer, changes, timestamps)\", \"Audit logs\"]",
+        "expected_seconds": 480
+      },
+      {
+        "step_order": 13,
+        "step_id": "13",
+        "step_name": "Output",
+        "description": "Workflow end point.",
+        "input_list_json": "[\"*\"]",
+        "output_list_json": "[\"final_response\"]",
+        "expected_seconds": 120
+      }
+    ]
+  },
+  "jobs": [
+    {
+      "workflow_id": "wf_lease_abstraction",
+      "name": "Downtown Portfolio — Q1 Leases",
+      "description": "10 commercial lease agreements from the downtown property portfolio. Focus on rent escalation clauses.",
+      "priority": 1,
+      "status": "active",
+      "supervisor_id": "naveena",
+      "special_instructions": "Pay close attention to break clauses and renewal option windows.",
+      "est_time_seconds": 5400,
+      "total_jobs": 10,
+      "job_id": "jb_lease_001"
+    },
+    {
+      "workflow_id": "wf_lease_abstraction",
+      "name": "Suburban Portfolio — Mixed Leases",
+      "description": "Mixed residential and commercial leases from the suburban portfolio. Lower priority — no immediate deadline.",
+      "priority": 2,
+      "status": "active",
+      "supervisor_id": "naveena",
+      "special_instructions": null,
+      "est_time_seconds": 3600,
+      "total_jobs": 5,
+      "job_id": "jb_lease_002"
+    }
+  ],
+  "job_members": [
+    {
+      "member_id": "naveena",
+      "job_id": "jb_lease_001"
+    },
+    {
+      "member_id": "sankarsundaram",
+      "job_id": "jb_lease_001"
+    },
+    {
+      "job_id": "jb_dig_001",
+      "member_id": "naveena"
+    },
+    {
+      "job_id": "jb_dig_001",
+      "member_id": "arjun.mehta"
+    },
+    {
+      "job_id": "jb_dig_001",
+      "member_id": "sankarsundaram"
+    },
+    {
+      "job_id": "jb_dig_002",
+      "member_id": "arjun.mehta"
+    }
+  ],
+  "batches": [
+    {
+      "workflow_id": "wf_lease_abstraction",
+      "priority": 1,
+      "created_at": "2026-03-09T14:19:18.043214+00:00",
+      "started_at": "2026-03-09T14:19:18.043214+00:00",
+      "completed_at": null,
+      "current_step_order": 1,
+      "status": "active",
+      "batch_id": "l01",
+      "job_id": "jb_lease_001"
+    },
+    {
+      "workflow_id": "wf_lease_abstraction",
+      "priority": 2,
+      "created_at": "2026-03-09T14:19:18.043225+00:00",
+      "started_at": "2026-03-09T14:19:18.043225+00:00",
+      "completed_at": null,
+      "current_step_order": 3,
+      "status": "active",
+      "batch_id": "l02",
+      "job_id": "jb_lease_001"
+    },
+    {
+      "workflow_id": "wf_lease_abstraction",
+      "priority": 3,
+      "created_at": "2026-03-09T14:19:18.043230+00:00",
+      "started_at": "2026-03-09T14:19:18.043230+00:00",
+      "completed_at": null,
+      "current_step_order": 3,
+      "status": "active",
+      "batch_id": "l03",
+      "job_id": "jb_lease_001"
+    },
+    {
+      "workflow_id": "wf_lease_abstraction",
+      "priority": 4,
+      "created_at": "2026-03-09T14:19:18.043233+00:00",
+      "started_at": "2026-03-09T14:19:18.043233+00:00",
+      "completed_at": null,
+      "current_step_order": 5,
+      "status": "active",
+      "batch_id": "l04",
+      "job_id": "jb_lease_001"
+    },
+    {
+      "workflow_id": "wf_lease_abstraction",
+      "priority": 5,
+      "created_at": "2026-03-09T14:19:18.043235+00:00",
+      "started_at": "2026-03-09T14:19:18.043235+00:00",
+      "completed_at": null,
+      "current_step_order": 6,
+      "status": "active",
+      "batch_id": "l05",
+      "job_id": "jb_lease_001"
+    },
+    {
+      "workflow_id": "wf_lease_abstraction",
+      "priority": 1,
+      "created_at": "2026-03-09T14:19:18.043238+00:00",
+      "started_at": "2026-03-09T14:19:18.043238+00:00",
+      "completed_at": null,
+      "current_step_order": 8,
+      "status": "active",
+      "batch_id": "l06",
+      "job_id": "jb_lease_002"
+    },
+    {
+      "workflow_id": "wf_lease_abstraction",
+      "priority": 2,
+      "created_at": "2026-03-09T14:19:18.043240+00:00",
+      "started_at": "2026-03-09T14:19:18.043240+00:00",
+      "completed_at": null,
+      "current_step_order": 8,
+      "status": "active",
+      "batch_id": "l07",
+      "job_id": "jb_lease_002"
+    },
+    {
+      "workflow_id": "wf_lease_abstraction",
+      "priority": 3,
+      "created_at": "2026-03-09T14:19:18.043242+00:00",
+      "started_at": "2026-03-09T14:19:18.043242+00:00",
+      "completed_at": null,
+      "current_step_order": 10,
+      "status": "active",
+      "batch_id": "l08",
+      "job_id": "jb_lease_002"
+    },
+    {
+      "workflow_id": "wf_lease_abstraction",
+      "priority": 4,
+      "created_at": "2026-03-09T14:19:18.043244+00:00",
+      "started_at": "2026-03-09T14:19:18.043244+00:00",
+      "completed_at": null,
+      "current_step_order": 12,
+      "status": "active",
+      "batch_id": "l09",
+      "job_id": "jb_lease_002"
+    },
+    {
+      "workflow_id": "wf_lease_abstraction",
+      "priority": 5,
+      "created_at": "2026-03-09T14:19:18.043245+00:00",
+      "started_at": "2026-03-09T14:19:18.043245+00:00",
+      "completed_at": null,
+      "current_step_order": 13,
+      "status": "completed",
+      "batch_id": "l10",
+      "job_id": "jb_lease_002"
+    }
+  ],
+  "batch_steps": [
+    {
+      "step_order": 0,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:32:35.043388+00:00",
+      "completed_at": "2026-03-09T15:34:18.043388+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l01"
+    },
+    {
+      "step_order": 1,
+      "claimed_by": null,
+      "claimed_at": null,
+      "completed_at": null,
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l01"
+    },
+    {
+      "step_order": 0,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:27:04.043406+00:00",
+      "completed_at": "2026-03-09T15:28:48.043406+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l02"
+    },
+    {
+      "step_order": 1,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:27:55.043406+00:00",
+      "completed_at": "2026-03-09T15:30:33.043406+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l02"
+    },
+    {
+      "step_order": 2,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:31:38.043406+00:00",
+      "completed_at": "2026-03-09T15:34:18.043406+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l02"
+    },
+    {
+      "step_order": 3,
+      "claimed_by": "naveena",
+      "claimed_at": "2026-03-10T09:16:50.179172+00:00",
+      "completed_at": null,
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l02"
+    },
+    {
+      "step_order": 0,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:27:02.043420+00:00",
+      "completed_at": "2026-03-09T15:28:48.043420+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l03"
+    },
+    {
+      "step_order": 1,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:27:53.043420+00:00",
+      "completed_at": "2026-03-09T15:30:33.043420+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l03"
+    },
+    {
+      "step_order": 2,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:31:36.043420+00:00",
+      "completed_at": "2026-03-09T15:34:18.043420+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l03"
+    },
+    {
+      "step_order": 3,
+      "claimed_by": "naveena",
+      "claimed_at": "2026-03-10T10:22:54.836483+00:00",
+      "completed_at": null,
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l03"
+    },
+    {
+      "step_order": 0,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:21:31.043430+00:00",
+      "completed_at": "2026-03-09T15:23:18.043430+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l04"
+    },
+    {
+      "step_order": 1,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:20:21.043430+00:00",
+      "completed_at": "2026-03-09T15:23:03.043430+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l04"
+    },
+    {
+      "step_order": 2,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:24:04.043430+00:00",
+      "completed_at": "2026-03-09T15:26:48.043430+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l04"
+    },
+    {
+      "step_order": 3,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:27:47.043430+00:00",
+      "completed_at": "2026-03-09T15:30:33.043430+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l04"
+    },
+    {
+      "step_order": 4,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:30:35.043430+00:00",
+      "completed_at": "2026-03-09T15:34:18.043430+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l04"
+    },
+    {
+      "step_order": 5,
+      "claimed_by": null,
+      "claimed_at": null,
+      "completed_at": null,
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l04"
+    },
+    {
+      "step_order": 0,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:18:45.043444+00:00",
+      "completed_at": "2026-03-09T15:20:33.043444+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l05"
+    },
+    {
+      "step_order": 1,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:16:34.043444+00:00",
+      "completed_at": "2026-03-09T15:19:18.043444+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l05"
+    },
+    {
+      "step_order": 2,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:20:17.043444+00:00",
+      "completed_at": "2026-03-09T15:23:03.043444+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l05"
+    },
+    {
+      "step_order": 3,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:24:01.043444+00:00",
+      "completed_at": "2026-03-09T15:26:48.043444+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l05"
+    },
+    {
+      "step_order": 4,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:25:47.043444+00:00",
+      "completed_at": "2026-03-09T15:29:33.043444+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l05"
+    },
+    {
+      "step_order": 5,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:31:27.043444+00:00",
+      "completed_at": "2026-03-09T15:34:18.043444+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l05"
+    },
+    {
+      "step_order": 6,
+      "claimed_by": null,
+      "claimed_at": null,
+      "completed_at": null,
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l05"
+    },
+    {
+      "step_order": 0,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:13:14.043460+00:00",
+      "completed_at": "2026-03-09T15:15:03.043460+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l06"
+    },
+    {
+      "step_order": 1,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:09:02.043460+00:00",
+      "completed_at": "2026-03-09T15:11:48.043460+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l06"
+    },
+    {
+      "step_order": 2,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:12:46.043460+00:00",
+      "completed_at": "2026-03-09T15:15:33.043460+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l06"
+    },
+    {
+      "step_order": 3,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:16:29.043460+00:00",
+      "completed_at": "2026-03-09T15:19:18.043460+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l06"
+    },
+    {
+      "step_order": 4,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:16:15.043460+00:00",
+      "completed_at": "2026-03-09T15:20:03.043460+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l06"
+    },
+    {
+      "step_order": 5,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:23:55.043460+00:00",
+      "completed_at": "2026-03-09T15:26:48.043460+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l06"
+    },
+    {
+      "step_order": 6,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:25:40.043460+00:00",
+      "completed_at": "2026-03-09T15:29:33.043460+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l06"
+    },
+    {
+      "step_order": 7,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:31:22.043460+00:00",
+      "completed_at": "2026-03-09T15:34:18.043460+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l06"
+    },
+    {
+      "step_order": 8,
+      "claimed_by": null,
+      "claimed_at": null,
+      "completed_at": null,
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l06"
+    },
+    {
+      "step_order": 0,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:13:13.043483+00:00",
+      "completed_at": "2026-03-09T15:15:03.043483+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l07"
+    },
+    {
+      "step_order": 1,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:09:01.043483+00:00",
+      "completed_at": "2026-03-09T15:11:48.043483+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l07"
+    },
+    {
+      "step_order": 2,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:12:44.043483+00:00",
+      "completed_at": "2026-03-09T15:15:33.043483+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l07"
+    },
+    {
+      "step_order": 3,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:16:27.043483+00:00",
+      "completed_at": "2026-03-09T15:19:18.043483+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l07"
+    },
+    {
+      "step_order": 4,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:16:13.043483+00:00",
+      "completed_at": "2026-03-09T15:20:03.043483+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l07"
+    },
+    {
+      "step_order": 5,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:23:53.043483+00:00",
+      "completed_at": "2026-03-09T15:26:48.043483+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l07"
+    },
+    {
+      "step_order": 6,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:25:38.043483+00:00",
+      "completed_at": "2026-03-09T15:29:33.043483+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l07"
+    },
+    {
+      "step_order": 7,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:31:20.043483+00:00",
+      "completed_at": "2026-03-09T15:34:18.043483+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l07"
+    },
+    {
+      "step_order": 8,
+      "claimed_by": null,
+      "claimed_at": null,
+      "completed_at": null,
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l07"
+    },
+    {
+      "step_order": 0,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:07:41.043504+00:00",
+      "completed_at": "2026-03-09T15:09:33.043504+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l08"
+    },
+    {
+      "step_order": 1,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:01:29.043504+00:00",
+      "completed_at": "2026-03-09T15:04:18.043504+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l08"
+    },
+    {
+      "step_order": 2,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:05:12.043504+00:00",
+      "completed_at": "2026-03-09T15:08:03.043504+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l08"
+    },
+    {
+      "step_order": 3,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:08:55.043504+00:00",
+      "completed_at": "2026-03-09T15:11:48.043504+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l08"
+    },
+    {
+      "step_order": 4,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:06:40.043504+00:00",
+      "completed_at": "2026-03-09T15:10:33.043504+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l08"
+    },
+    {
+      "step_order": 5,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:16:22.043504+00:00",
+      "completed_at": "2026-03-09T15:19:18.043504+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l08"
+    },
+    {
+      "step_order": 6,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:16:05.043504+00:00",
+      "completed_at": "2026-03-09T15:20:03.043504+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l08"
+    },
+    {
+      "step_order": 7,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:23:48.043504+00:00",
+      "completed_at": "2026-03-09T15:26:48.043504+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l08"
+    },
+    {
+      "step_order": 8,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:16:24.043504+00:00",
+      "completed_at": "2026-03-09T15:26:33.043504+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l08"
+    },
+    {
+      "step_order": 9,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:31:14.043504+00:00",
+      "completed_at": "2026-03-09T15:34:18.043504+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l08"
+    },
+    {
+      "step_order": 10,
+      "claimed_by": null,
+      "claimed_at": null,
+      "completed_at": null,
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l08"
+    },
+    {
+      "step_order": 0,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:02:10.043531+00:00",
+      "completed_at": "2026-03-09T15:04:03.043531+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l09"
+    },
+    {
+      "step_order": 1,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T14:53:57.043531+00:00",
+      "completed_at": "2026-03-09T14:56:48.043531+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l09"
+    },
+    {
+      "step_order": 2,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T14:57:40.043531+00:00",
+      "completed_at": "2026-03-09T15:00:33.043531+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l09"
+    },
+    {
+      "step_order": 3,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:01:23.043531+00:00",
+      "completed_at": "2026-03-09T15:04:18.043531+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l09"
+    },
+    {
+      "step_order": 4,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T14:57:08.043531+00:00",
+      "completed_at": "2026-03-09T15:01:03.043531+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l09"
+    },
+    {
+      "step_order": 5,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:08:50.043531+00:00",
+      "completed_at": "2026-03-09T15:11:48.043531+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l09"
+    },
+    {
+      "step_order": 6,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:06:33.043531+00:00",
+      "completed_at": "2026-03-09T15:10:33.043531+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l09"
+    },
+    {
+      "step_order": 7,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:16:16.043531+00:00",
+      "completed_at": "2026-03-09T15:19:18.043531+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l09"
+    },
+    {
+      "step_order": 8,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:00:54.043531+00:00",
+      "completed_at": "2026-03-09T15:11:03.043531+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l09"
+    },
+    {
+      "step_order": 9,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:23:43.043531+00:00",
+      "completed_at": "2026-03-09T15:26:48.043531+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l09"
+    },
+    {
+      "step_order": 10,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:20:49.043531+00:00",
+      "completed_at": "2026-03-09T15:26:33.043531+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l09"
+    },
+    {
+      "step_order": 11,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:31:49.043531+00:00",
+      "completed_at": "2026-03-09T15:34:18.043531+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l09"
+    },
+    {
+      "step_order": 12,
+      "claimed_by": null,
+      "claimed_at": null,
+      "completed_at": null,
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l09"
+    },
+    {
+      "step_order": 0,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T14:59:35.043562+00:00",
+      "completed_at": "2026-03-09T15:01:18.043562+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l10"
+    },
+    {
+      "step_order": 1,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T14:50:26.043562+00:00",
+      "completed_at": "2026-03-09T14:53:03.043562+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l10"
+    },
+    {
+      "step_order": 2,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T14:54:10.043562+00:00",
+      "completed_at": "2026-03-09T14:56:48.043562+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l10"
+    },
+    {
+      "step_order": 3,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T14:57:53.043562+00:00",
+      "completed_at": "2026-03-09T15:00:33.043562+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l10"
+    },
+    {
+      "step_order": 4,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T14:52:42.043562+00:00",
+      "completed_at": "2026-03-09T14:56:18.043562+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l10"
+    },
+    {
+      "step_order": 5,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:05:19.043562+00:00",
+      "completed_at": "2026-03-09T15:08:03.043562+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l10"
+    },
+    {
+      "step_order": 6,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:02:07.043562+00:00",
+      "completed_at": "2026-03-09T15:05:48.043562+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l10"
+    },
+    {
+      "step_order": 7,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:12:46.043562+00:00",
+      "completed_at": "2026-03-09T15:15:33.043562+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l10"
+    },
+    {
+      "step_order": 8,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T14:53:09.043562+00:00",
+      "completed_at": "2026-03-09T15:03:18.043562+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l10"
+    },
+    {
+      "step_order": 9,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:20:12.043562+00:00",
+      "completed_at": "2026-03-09T15:23:03.043562+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l10"
+    },
+    {
+      "step_order": 10,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:09:21.043562+00:00",
+      "completed_at": "2026-03-09T15:18:48.043562+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l10"
+    },
+    {
+      "step_order": 11,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:26:28.043562+00:00",
+      "completed_at": "2026-03-09T15:30:33.043562+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l10"
+    },
+    {
+      "step_order": 12,
+      "claimed_by": "bot",
+      "claimed_at": "2026-03-09T15:22:42.043562+00:00",
+      "completed_at": "2026-03-09T15:34:18.043562+00:00",
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l10"
+    },
+    {
+      "step_order": 13,
+      "claimed_by": null,
+      "claimed_at": null,
+      "completed_at": null,
+      "payload_json": "{\"queue_message\": {\"message_id\": \"synthetic\", \"payload\": {}}}",
+      "member_notes": "",
+      "batch_id": "l10"
+    }
+  ]
+}

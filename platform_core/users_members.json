@@ -1,0 +1,37 @@
+{
+  "members": [
+    {
+      "member_id": "naveena",
+      "name": "Naveena S",
+      "email": "naveena@xtract.io",
+      "role": "member",
+      "team": "Document Processing",
+      "password_hash": "7b59dae4d05f42d25e56349cf14e4dd110cb3f9ac81d5e7904fc7fc95f4d2bcd",
+      "created_at": "2026-03-09T15:49:18.042977+00:00",
+      "last_login": null,
+      "is_active": 1
+    },
+    {
+      "member_id": "sankarsundaram",
+      "name": "Sankarsundaram",
+      "email": "sankarsundaram@xtract.io",
+      "role": "member",
+      "team": "Document Processing",
+      "password_hash": "7b59dae4d05f42d25e56349cf14e4dd110cb3f9ac81d5e7904fc7fc95f4d2bcd",
+      "created_at": "2026-03-09T15:49:18.042977+00:00",
+      "last_login": null,
+      "is_active": 1
+    },
+    {
+      "member_id": "aswatth.krishna",
+      "name": "Aswatth Krishna",
+      "email": "aswatth.krishna@techmobius.com",
+      "role": "member",
+      "team": "Document Processing",
+      "password_hash": "7b59dae4d05f42d25e56349cf14e4dd110cb3f9ac81d5e7904fc7fc95f4d2bcd",
+      "created_at": "2026-03-09T15:49:18.042977+00:00",
+      "last_login": null,
+      "is_active": 1
+    }
+  ]
+}

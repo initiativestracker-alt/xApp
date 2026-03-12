@@ -1,0 +1,508 @@
+{
+    "nodes": [
+        {
+            "id": "0",
+            "name": "Input",
+            "inputs": "user_request",
+            "outputs": "initial_context",
+            "designer description": "START node for workflow execution.\n\n",
+            "user sescription": "Workflow starting point.",
+            "designer reason": "START node is required to initiate the workflow as per the strict rules.",
+            "user reason": "START node is required to initiate the workflow as per the strict rules.",
+            "displayname": "Input",
+            "x": 0,
+            "y": 0,
+            "connectors": [
+                {
+                    "id": "1",
+                    "type": "leftConnector"
+                },
+                {
+                    "id": "2",
+                    "type": "rightConnector"
+                }
+            ]
+        },
+        {
+            "id": "1",
+            "name": "PDF_Type_Finder",
+            "inputs": [
+                "PDF file path (string)",
+                "PDF file name (string)",
+                "AWS S3 credentials/config (dict)",
+                "SMB credentials/config (dict)",
+                "Queue message (JSON)",
+                "Attribute fields (string/any)"
+            ],
+            "outputs": [
+                "Classification report (JSON)",
+                "Signed URL (string)",
+                "Status messages (string)",
+                "Error logs (string)"
+            ],
+            "designer description": "PDF_Type_Finder: This bot automates the process of locating, downloading, and analyzing PDF files from either AWS S3 or SMB (Samba) file shares. It classifies PDF pages as text-based or image-based, generates signed URLs for file access, and outputs structured results. The bot supports robust error handling, threading for timeout control, and is designed for integration with enterprise queue-based workflows.",
+            "user sescription": "Classifies PDFs as image-based or text-based and provides signed URLs for further processing.",
+            "designer reason": "PDF_Type_Finder is chosen because the user needs to process 10,000 PDFs/month and must distinguish between image-based and text-based PDFs for downstream processing. Since you have asked for entity extraction from PDFs, this step ensures correct routing for OCR or direct extraction.",
+            "user reason": "PDF_Type_Finder is included to classify PDFs for correct downstream processing, as you requested high-volume entity extraction from PDFs.",
+            "displayname": "PDF_Type_Finder",
+            "x": 200,
+            "y": 0,
+            "connectors": [
+                {
+                    "id": "3",
+                    "type": "leftConnector"
+                },
+                {
+                    "id": "4",
+                    "type": "rightConnector"
+                }
+            ]
+        },
+        {
+            "id": "2",
+            "name": "hypo - PDF_Type_Finder_to_Scanned_PDF_Converter_M2_Router_V1",
+            "inputs": [
+                "Classification report (JSON)",
+                "Signed URL (string)",
+                "Status messages (string)",
+                "Error logs (string)"
+            ],
+            "outputs": [
+                "Scanned PDF files (from S3)",
+                "JSON job metadata (from queue)"
+            ],
+            "designer description": "This hypothetical bot inspects the PDF_Type_Finder outputs, determines if the PDF is image-based, and prepares the required inputs for Scanned_PDF_Converter_M2. It extracts the signed S3 URL for the scanned PDF and generates minimal job metadata in JSON format as required by the downstream OCR bot. This ensures strict type and semantic compatibility between PDF_Type_Finder and Scanned_PDF_Converter_M2.",
+            "user sescription": "Routes image-based PDFs from the classifier to the OCR step, formatting the signed URL and job metadata as required.",
+            "designer reason": "hypo - PDF_Type_Finder_to_Scanned_PDF_Converter_M2_Router_V1 is required because PDF_Type_Finder outputs a classification report and signed URL, but Scanned_PDF_Converter_M2 expects 'Scanned PDF files (from S3)' and job metadata. Since you have asked for OCR on image-based PDFs, this router ensures type-safe handoff.",
+            "user reason": "This router ensures image-based PDFs are properly handed off for OCR, as you requested accurate entity extraction from all PDF types.",
+            "displayname": "hypo - PDF_Type_Finder_to_Scanned_PDF_Converter_M2_Router_V1",
+            "x": 400,
+            "y": 0,
+            "connectors": [
+                {
+                    "id": "5",
+                    "type": "leftConnector"
+                },
+                {
+                    "id": "6",
+                    "type": "rightConnector"
+                }
+            ]
+        },
+        {
+            "id": "3",
+            "name": "hypo - PDF_Type_Finder_to_PDF_Chunker_Router_V1",
+            "inputs": [
+                "Classification report (JSON)",
+                "Signed URL (string)",
+                "Status messages (string)",
+                "Error logs (string)"
+            ],
+            "outputs": [
+                "PDF file (from S3)",
+                "User configuration JSON (from S3)",
+                "Queue message (JSON with metadata)"
+            ],
+            "designer description": "This hypothetical bot inspects the PDF_Type_Finder outputs, determines if the PDF is text-based, and prepares the required inputs for PDF Chunker. It extracts the signed S3 URL for the PDF, fetches or generates user configuration JSON from S3, and creates a queue message with metadata as required by PDF Chunker. This ensures strict type and semantic compatibility between PDF_Type_Finder and PDF Chunker.",
+            "user sescription": "Routes text-based PDFs from the classifier to the chunking step, formatting the signed URL, configuration, and queue message as required.",
+            "designer reason": "hypo - PDF_Type_Finder_to_PDF_Chunker_Router_V1 is required because PDF_Type_Finder outputs a classification report and signed URL, but PDF Chunker expects a PDF file from S3, user config JSON, and a queue message. Since you have asked for chunking of text-based PDFs, this router ensures type-safe handoff.",
+            "user reason": "This router ensures text-based PDFs are properly handed off for chunking, as you requested high-volume, efficient entity extraction.",
+            "displayname": "hypo - PDF_Type_Finder_to_PDF_Chunker_Router_V1",
+            "x": 600,
+            "y": 0,
+            "connectors": [
+                {
+                    "id": "7",
+                    "type": "leftConnector"
+                },
+                {
+                    "id": "8",
+                    "type": "rightConnector"
+                }
+            ]
+        },
+        {
+            "id": "4",
+            "name": "Scanned_PDF_Converter_M2",
+            "inputs": [
+                "Scanned PDF files (from S3)",
+                "JSON job metadata (from queue)"
+            ],
+            "outputs": [
+                "Searchable/readable PDF files (to S3)",
+                "Signed S3 URLs",
+                "JSON status messages"
+            ],
+            "designer description": "Scanned_PDF_Converter_M2: This bot automates the conversion of scanned PDF files into readable, searchable PDF documents using OCR. It retrieves input files from an S3 bucket, processes them in parallel threads, applies Tesseract OCR to convert images to text-based PDFs, and uploads the output back to S3 with signed URLs.",
+            "user sescription": "Converts scanned/image PDFs to searchable PDFs using OCR.",
+            "designer reason": "Scanned_PDF_Converter_M2 is included because, for image-based PDFs, OCR is required before any text extraction. Since you have asked for cost-efficient, high-volume entity extraction, this step ensures all PDFs are in a processable format.",
+            "user reason": "Scanned_PDF_Converter_M2 is included to convert image-based PDFs to searchable text, as you requested entity extraction from all PDF types.",
+            "displayname": "Scanned_PDF_Converter_M2",
+            "x": 800,
+            "y": 0,
+            "connectors": [
+                {
+                    "id": "9",
+                    "type": "leftConnector"
+                },
+                {
+                    "id": "10",
+                    "type": "rightConnector"
+                }
+            ]
+        },
+        {
+            "id": "5",
+            "name": "hypo - Scanned_PDF_Converter_M2_to_PDF_Chunker_Router_V1",
+            "inputs": [
+                "Searchable/readable PDF files (to S3)",
+                "Signed S3 URLs",
+                "JSON status messages"
+            ],
+            "outputs": [
+                "PDF file (from S3)",
+                "User configuration JSON (from S3)",
+                "Queue message (JSON with metadata)"
+            ],
+            "designer description": "This hypothetical bot takes the outputs from Scanned_PDF_Converter_M2 (searchable PDF files and signed S3 URLs) and prepares the exact input required by PDF Chunker. It selects the correct S3 URL for the processed PDF, fetches or generates the user configuration JSON from S3, and constructs a queue message with metadata. This ensures strict type and semantic compatibility between Scanned_PDF_Converter_M2 and PDF Chunker.",
+            "user sescription": "Prepares OCR-processed PDFs for chunking by formatting the S3 URL, configuration, and queue message as required.",
+            "designer reason": "hypo - Scanned_PDF_Converter_M2_to_PDF_Chunker_Router_V1 is required because Scanned_PDF_Converter_M2 outputs signed S3 URLs and status messages, but PDF Chunker expects a PDF file from S3, user config JSON, and a queue message. Since you have asked for chunking of all PDFs after OCR, this router ensures type-safe handoff.",
+            "user reason": "This router ensures OCR-processed PDFs are properly handed off for chunking, as you requested efficient, high-volume entity extraction.",
+            "displayname": "hypo - Scanned_PDF_Converter_M2_to_PDF_Chunker_Router_V1",
+            "x": 1000,
+            "y": 0,
+            "connectors": [
+                {
+                    "id": "11",
+                    "type": "leftConnector"
+                },
+                {
+                    "id": "12",
+                    "type": "rightConnector"
+                }
+            ]
+        },
+        {
+            "id": "6",
+            "name": "PDF Chunker",
+            "inputs": [
+                "PDF file (from S3)",
+                "User configuration JSON (from S3)",
+                "Queue message (JSON with metadata)"
+            ],
+            "outputs": [
+                "Chunked JSON (to S3)",
+                "Presigned S3 URL",
+                "Status/Result message (queue)"
+            ],
+            "designer description": "PDF Chunker: This bot automates the process of downloading PDF and configuration files from AWS S3, chunking the PDF content either by character or by page according to user-specified strategies, and uploading the resulting chunked JSON output back to S3.",
+            "user sescription": "Chunks PDF content for scalable entity extraction.",
+            "designer reason": "PDF Chunker is chosen because chunking is necessary for scalable, parallel entity extraction and downstream HITL workflows. Since you have asked for high-volume, cost-efficient processing, chunking enables efficient batch operations.",
+            "user reason": "PDF Chunker is included to break PDFs into manageable chunks for efficient entity extraction, as you requested.",
+            "displayname": "PDF Chunker",
+            "x": 1200,
+            "y": 0,
+            "connectors": [
+                {
+                    "id": "13",
+                    "type": "leftConnector"
+                },
+                {
+                    "id": "14",
+                    "type": "rightConnector"
+                }
+            ]
+        },
+        {
+            "id": "7",
+            "name": "hypo - PDF_Chunker_to_Entity_Extraction_LLM_Router_V1",
+            "inputs": [
+                "Chunked JSON (to S3)",
+                "Presigned S3 URL",
+                "Status/Result message (queue)"
+            ],
+            "outputs": [
+                "Chunked PDF text (JSON)",
+                "Extraction configuration (JSON or YAML)",
+                "Optional: taxonomy or entity schema (JSON)"
+            ],
+            "designer description": "This hypothetical bot takes the outputs from PDF Chunker, specifically the chunked JSON (from S3) and presigned S3 URL, retrieves the chunked PDF text as JSON, and prepares the extraction configuration and optional taxonomy/schema as required by the Entity Extraction LLM. This ensures strict type and semantic compatibility between PDF Chunker and Entity Extraction LLM.",
+            "user sescription": "Loads chunked PDF text and prepares extraction configuration for the entity extraction LLM.",
+            "designer reason": "hypo - PDF_Chunker_to_Entity_Extraction_LLM_Router_V1 is required because PDF Chunker outputs chunked JSON to S3 and presigned URLs, but Entity Extraction LLM expects chunked PDF text (JSON), extraction config, and optional taxonomy. Since you have asked for structured entity extraction, this router ensures type-safe handoff.",
+            "user reason": "This router ensures chunked PDF text is loaded and configured for entity extraction, as you requested structured extraction from annual reports.",
+            "displayname": "hypo - PDF_Chunker_to_Entity_Extraction_LLM_Router_V1",
+            "x": 1400,
+            "y": 0,
+            "connectors": [
+                {
+                    "id": "15",
+                    "type": "leftConnector"
+                },
+                {
+                    "id": "16",
+                    "type": "rightConnector"
+                }
+            ]
+        },
+        {
+            "id": "8",
+            "name": "hypo - Entity Extraction LLM",
+            "inputs": [
+                "Chunked PDF text (JSON)",
+                "Extraction configuration (JSON or YAML)",
+                "Optional: taxonomy or entity schema (JSON)"
+            ],
+            "outputs": [
+                "Structured JSON with extracted entities, types, values, and source references",
+                "Extraction confidence scores",
+                "Error logs"
+            ],
+            "designer description": "This hypothetical bot automates the extraction of financial entities (such as company names, financial figures, dates, and key terms) from structured PDF text or chunked JSON. It leverages a large language model (LLM) or advanced NER (Named Entity Recognition) engine, configurable for finance-specific taxonomies. The bot processes each chunk or section, applies entity extraction logic, and outputs structured JSON with extracted entities, their types, and source references (page, coordinates, etc.). It is designed for high-throughput, batch processing, and can be tuned for accuracy and recall. The bot supports integration with downstream HITL (Human-in-the-Loop) validation workflows.",
+            "user sescription": "Extracts financial entities from chunked PDF text using an LLM or NER engine.",
+            "designer reason": "hypo - Entity Extraction LLM is included because there is no real bot for financial entity extraction from chunked PDF text. Since you have asked for entity extraction from annual reports, this step is essential.",
+            "user reason": "Entity Extraction LLM is included to extract structured entities from PDFs, as you requested financial entity extraction.",
+            "displayname": "hypo - Entity Extraction LLM",
+            "x": 1600,
+            "y": 0,
+            "connectors": [
+                {
+                    "id": "17",
+                    "type": "leftConnector"
+                },
+                {
+                    "id": "18",
+                    "type": "rightConnector"
+                }
+            ]
+        },
+        {
+            "id": "9",
+            "name": "hypo - Entity_Extraction_LLM_to_GPT_Validation_Post_Process_Router_V1",
+            "inputs": [
+                "Structured JSON with extracted entities, types, values, and source references",
+                "Extraction confidence scores",
+                "Error logs"
+            ],
+            "outputs": [
+                "JSON message from queue",
+                "String (input_text)",
+                "String (response, expected to be escaped JSON)"
+            ],
+            "designer description": "This hypothetical bot takes the outputs from the Entity Extraction LLM (structured JSON with entities, confidence scores, and error logs), packages the data as a JSON message for the queue, extracts the original input text, and formats the response as an escaped JSON string as required by the GPT Validation Post Process bot. This ensures strict type and semantic compatibility.",
+            "user sescription": "Prepares extracted entities and input text for validation by formatting them as required for the validation step.",
+            "designer reason": "hypo - Entity_Extraction_LLM_to_GPT_Validation_Post_Process_Router_V1 is required because Entity Extraction LLM outputs structured JSON, but GPT Validation Post Process expects a queue message, input text string, and response string (escaped JSON). Since you have asked for automated QA, this router ensures type-safe handoff.",
+            "user reason": "This router ensures extracted entities are formatted for automated validation, as you requested high data quality.",
+            "displayname": "hypo - Entity_Extraction_LLM_to_GPT_Validation_Post_Process_Router_V1",
+            "x": 1800,
+            "y": 0,
+            "connectors": [
+                {
+                    "id": "19",
+                    "type": "leftConnector"
+                },
+                {
+                    "id": "20",
+                    "type": "rightConnector"
+                }
+            ]
+        },
+        {
+            "id": "10",
+            "name": "GPT Validation Post Process",
+            "inputs": [
+                "JSON message from queue",
+                "String (input_text)",
+                "String (response, expected to be escaped JSON)"
+            ],
+            "outputs": [
+                "JSON validation result",
+                "Log entries",
+                "Error reports"
+            ],
+            "designer description": "GPT Validation Post Process: This bot validates and normalizes GPT (LLM) output responses against input text, focusing on numeric value matching and data cleaning. It processes messages from a queue, cleans and parses JSON responses, filters out ignored keys/values, and checks for numeric consistency.",
+            "user sescription": "Validates and normalizes extracted entities for accuracy and consistency.",
+            "designer reason": "GPT Validation Post Process is included to validate and normalize the LLM-extracted entities, ensuring numeric and data consistency. Since you have asked for high data quality and cost efficiency, automated QA is required before HITL.",
+            "user reason": "GPT Validation Post Process is included to ensure extracted entities are accurate and consistent, as you requested high data quality.",
+            "displayname": "GPT Validation Post Process",
+            "x": 2000,
+            "y": 0,
+            "connectors": [
+                {
+                    "id": "21",
+                    "type": "leftConnector"
+                },
+                {
+                    "id": "22",
+                    "type": "rightConnector"
+                }
+            ]
+        },
+        {
+            "id": "11",
+            "name": "hypo - GPT_Validation_Post_Process_to_HITL_Annotation_Manager_Router_V1",
+            "inputs": [
+                "JSON validation result",
+                "Log entries",
+                "Error reports"
+            ],
+            "outputs": [
+                "Extracted entities (JSON)",
+                "Original PDF chunk references (JSON)",
+                "Reviewer assignments/config (JSON)"
+            ],
+            "designer description": "This hypothetical bot takes the outputs from GPT Validation Post Process (JSON validation result, log entries, and error reports), extracts the validated entities and their references, and prepares reviewer assignment/config JSON as required by the HITL Annotation Manager. This ensures strict type and semantic compatibility.",
+            "user sescription": "Prepares validated entities and reviewer assignment info for human annotation and review.",
+            "designer reason": "hypo - GPT_Validation_Post_Process_to_HITL_Annotation_Manager_Router_V1 is required because GPT Validation Post Process outputs validation results and logs, but HITL Annotation Manager expects extracted entities, chunk references, and reviewer assignments/config. Since you have asked for HITL output, this router ensures type-safe handoff.",
+            "user reason": "This router ensures validated entities are ready for human review and annotation, as you requested a HITL output format.",
+            "displayname": "hypo - GPT_Validation_Post_Process_to_HITL_Annotation_Manager_Router_V1",
+            "x": 2200,
+            "y": 0,
+            "connectors": [
+                {
+                    "id": "23",
+                    "type": "leftConnector"
+                },
+                {
+                    "id": "24",
+                    "type": "rightConnector"
+                }
+            ]
+        },
+        {
+            "id": "12",
+            "name": "hypo - HITL Annotation Manager",
+            "inputs": [
+                "Extracted entities (JSON)",
+                "Original PDF chunk references (JSON)",
+                "Reviewer assignments/config (JSON)"
+            ],
+            "outputs": [
+                "Finalized, human-validated entities (JSON)",
+                "Annotation metadata (reviewer, changes, timestamps)",
+                "Audit logs"
+            ],
+            "designer description": "This hypothetical bot manages the Human-in-the-Loop (HITL) annotation and validation process for extracted entities. It ingests the output from the entity extraction bot, generates annotation tasks for human reviewers, tracks annotation progress, and merges human corrections back into the structured output. The bot supports task assignment, reviewer feedback capture, and audit logging. It outputs finalized, human-validated entity data, along with annotation metadata (who reviewed, what was changed, timestamps). This bot is essential for ensuring data quality and compliance in high-stakes financial document processing.",
+            "user sescription": "Manages human review and annotation of extracted entities for final validation.",
+            "designer reason": "hypo - HITL Annotation Manager is included because the user explicitly requests a HITL output format. No real bot exists for this function, so this step is necessary to fulfill the requirement for human validation and annotation.",
+            "user reason": "HITL Annotation Manager is included to provide human validation and annotation of extracted entities, as you requested a HITL output format.",
+            "displayname": "hypo - HITL Annotation Manager",
+            "x": 2400,
+            "y": 0,
+            "connectors": [
+                {
+                    "id": "25",
+                    "type": "leftConnector"
+                },
+                {
+                    "id": "26",
+                    "type": "rightConnector"
+                }
+            ]
+        },
+        {
+            "id": "13",
+            "name": "Output",
+            "inputs": "*",
+            "outputs": "final_response",
+            "designer description": "END node for workflow completion.\n\n",
+            "user sescription": "Workflow end point.",
+            "designer reason": "END node is required to terminate the workflow as per the strict rules.",
+            "user reason": "END node is required to terminate the workflow as per the strict rules.",
+            "displayname": "Output",
+            "x": 2600,
+            "y": 0,
+            "connectors": [
+                {
+                    "id": "27",
+                    "type": "leftConnector"
+                },
+                {
+                    "id": "28",
+                    "type": "rightConnector"
+                }
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "label": "Input-PDF_Type_Finder",
+            "source": "0",
+            "destination": "1"
+        },
+        {
+            "label": "PDF_Type_Finder-hypo - PDF_Type_Finder_to_Scanned_PDF_Converter_M2_Router_V1",
+            "source": "1",
+            "destination": "2"
+        },
+        {
+            "label": "hypo - PDF_Type_Finder_to_Scanned_PDF_Converter_M2_Router_V1-PDF_Type_Finder",
+            "source": "2",
+            "destination": "3"
+        },
+        {
+            "label": "PDF_Type_Finder-hypo - PDF_Type_Finder_to_Scanned_PDF_Converter_M2_Router_V1",
+            "source": "4",
+            "destination": "5"
+        },
+        {
+            "label": "PDF_Type_Finder-hypo - PDF_Type_Finder_to_PDF_Chunker_Router_V1",
+            "source": "4",
+            "destination": "7"
+        },
+        {
+            "label": "hypo - PDF_Type_Finder_to_Scanned_PDF_Converter_M2_Router_V1-Scanned_PDF_Converter_M2",
+            "source": "6",
+            "destination": "9"
+        },
+        {
+            "label": "hypo - PDF_Type_Finder_to_PDF_Chunker_Router_V1-PDF Chunker",
+            "source": "8",
+            "destination": "13"
+        },
+        {
+            "label": "Scanned_PDF_Converter_M2-hypo - Scanned_PDF_Converter_M2_to_PDF_Chunker_Router_V1",
+            "source": "10",
+            "destination": "11"
+        },
+        {
+            "label": "hypo - Scanned_PDF_Converter_M2_to_PDF_Chunker_Router_V1-PDF Chunker",
+            "source": "12",
+            "destination": "13"
+        },
+        {
+            "label": "PDF Chunker-hypo - PDF_Chunker_to_Entity_Extraction_LLM_Router_V1",
+            "source": "14",
+            "destination": "15"
+        },
+        {
+            "label": "hypo - PDF_Chunker_to_Entity_Extraction_LLM_Router_V1-hypo - Entity Extraction LLM",
+            "source": "16",
+            "destination": "17"
+        },
+        {
+            "label": "hypo - Entity Extraction LLM-hypo - Entity_Extraction_LLM_to_GPT_Validation_Post_Process_Router_V1",
+            "source": "18",
+            "destination": "19"
+        },
+        {
+            "label": "hypo - Entity_Extraction_LLM_to_GPT_Validation_Post_Process_Router_V1-GPT Validation Post Process",
+            "source": "20",
+            "destination": "21"
+        },
+        {
+            "label": "GPT Validation Post Process-hypo - GPT_Validation_Post_Process_to_HITL_Annotation_Manager_Router_V1",
+            "source": "22",
+            "destination": "23"
+        },
+        {
+            "label": "hypo - GPT_Validation_Post_Process_to_HITL_Annotation_Manager_Router_V1-hypo - HITL Annotation Manager",
+            "source": "24",
+            "destination": "25"
+        },
+        {
+            "label": "hypo - HITL Annotation Manager-Output",
+            "source": "26",
+            "destination": "27"
+        }
+    ]
+}
